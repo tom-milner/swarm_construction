@@ -6,6 +6,7 @@ TITLE = "Swarm Construction"
 WINDOW_SIZE = 800
 NUM_AGENTS = 100
 
+
 class Agent:
 
     def __init__(self, surface, pos, radius=30, color=(255, 255, 255)):
@@ -62,8 +63,7 @@ class Game:
         # Generate the seed agents and simultaneously add them to the game.
         seed_color = (218, 247, 166)
         self.players.extend(
-            [Agent(self.surface, pos, agent_radius, seed_color)
-             for pos in seed_pos]
+            [Agent(self.surface, pos, agent_radius, seed_color) for pos in seed_pos]
         )
 
         # Two agents connect to the bottom of the seed - this isnt' necessary, I just wanted it to look like it does in the paper.
@@ -127,6 +127,10 @@ class Game:
         pg.display.update()
 
 
-if __name__ == "__main__":
+def main():
     swarm_game = Game()
     swarm_game.main()
+
+
+if __name__ == "__main__":
+    main()
