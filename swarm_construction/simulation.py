@@ -1,10 +1,10 @@
 import pygame as pg
 import math
 import numpy as np
-from agent import Agent
+from .agent import Agent
 
 
-class Game:
+class Simulation:
 
     def generate_seeds(self, line_spacing, agent_radius, origin):
         dx = agent_radius
@@ -23,7 +23,7 @@ class Game:
         seed_pos = np.add(origin, seed_deltas)
         seed_color = (218, 247, 166)
 
-        # Add the seeds to the game.
+        # Add the seeds to the simulation.
         self.agents.extend(
             [
                 Agent(self.surface, pos, agent_radius, color=seed_color)
@@ -41,7 +41,7 @@ class Game:
         conn_deltas = np.array([[-dx, dy], [dx, dy]])
         conn_pos = np.add(conn_deltas, origin_agent)
 
-        # Generate the connecting agents and add them to the game.
+        # Generate the connecting agents and add them to the simulation.
         self.agents.extend([Agent(self.surface, pos, agent_radius) for pos in conn_pos])
 
         return conn_pos
@@ -114,7 +114,7 @@ class Game:
         self.clock = pg.time.Clock()
         pg.display.set_caption(self.title)
 
-        # Initialise Game.
+        # Initialise simulation.
         self.surface = pg.display.set_mode((self.window_size, self.window_size))
         self.running = True
         self.agents = []
@@ -122,8 +122,8 @@ class Game:
         # Generate the agents (robots!).
         self.generate_agents()
 
-    def main(self):
-        # Main game loop.
+    def run(self):
+        # Main loop.
         while self.running:
             self.update()
             self.draw()
@@ -156,8 +156,8 @@ class Game:
 
 
 def main():
-    swarm_game = Game()
-    swarm_game.main()
+    sim = Simulation()
+    sim.run()
 
 
 if __name__ == "__main__":

@@ -1,1 +1,1 @@
-# Swarm Construction Simulation
+# Bio-Inspired Computing Coursework 2: Swarm Shape Construction
