@@ -11,6 +11,7 @@ class Agent:
         self.radius = radius
         self.color = color
         self.direction = direction
+        # Speed is measured in pixels per second!
         self.speed = 0
 
     def update(self, fps):
