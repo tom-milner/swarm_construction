@@ -19,7 +19,7 @@ To download and run the simulation:
 
 4. Run the simulation
    ```
-   poetry run python -m swarm_construction.simulation
+   poetry run python -m swarm_construction.main
    ```
 
 The first run will take a while to start, but will be much quicker after that!
@@ -35,3 +35,8 @@ poetry add my-new-dependency
 ```
 
 For Poetry help, see the docs [here](https://python-poetry.org).
+
+To run tests, run
+```
+poetry run python -m tests.my_test
+```
