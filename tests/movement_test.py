@@ -8,6 +8,8 @@ class MovementTest:
         if fps == 0:
             return
         self.new_agent.direction += self.delta / fps
+
+        # If we exceed 2PI, wrap around to 0.
         self.new_agent.direction %= 2 * math.pi
 
         self.new_agent.update(fps)
@@ -17,7 +19,7 @@ class MovementTest:
 
     def main(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation()
+        self.sim = simulation_engine.Simulation("Movement Test", 800)
 
         # Add one agent.
         middle = self.sim.window_size / 2

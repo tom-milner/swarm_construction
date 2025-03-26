@@ -2,12 +2,16 @@ import pygame as pg
 import math
 import numpy as np
 
+# A NOTE ON THE PYGAME COORDINATE SYSTEM
+# pygame sets (0,0) as the top left corner. As such, a direction of
+# 0 points straight down. How irritating is that.
+
 
 class Simulation:
 
-    def __init__(self):
-        self.title = "Swarm Construction"
-        self.window_size = 800
+    def __init__(self, title, window_size):
+        self.title = title
+        self.window_size = window_size
 
         # Initialise pygame.
         pg.init()
@@ -40,7 +44,8 @@ class Simulation:
                 if event.key == pg.K_ESCAPE:
                     self.running = False
 
-        # Call update callbacks.
+        # Call the update callbacks.
+        # The FPS is needed for accurate velocity computing.
         fps = self.clock.get_fps()
         for c in self.update_callbacks:
             c(fps)

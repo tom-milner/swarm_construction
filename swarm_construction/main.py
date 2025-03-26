@@ -118,7 +118,7 @@ class SwarmConstructionSimulation:
         self.num_agents = 100
         self.agents = []
 
-        self.sim = Simulation()
+        self.sim = Simulation("Swarm Construction", 800)
 
         # Generate the agents (robots!).
         self.generate_agents()
