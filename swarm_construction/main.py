@@ -1,11 +1,11 @@
-import pygame as pg
-import math
-import numpy as np
+from .simulation_engine import Simulation
 from .agent import Agent
+import math
+
+import numpy as np
 
 
-class Simulation:
-
+class SwarmConstructionSimulation:
     def generate_seeds(self, line_spacing, agent_radius, origin):
         dx = agent_radius
         dy = line_spacing
@@ -26,7 +26,7 @@ class Simulation:
         # Add the seeds to the simulation.
         self.agents.extend(
             [
-                Agent(self.surface, pos, agent_radius, color=seed_color)
+                Agent(self.sim.surface, pos, agent_radius, color=seed_color)
                 for pos in seed_pos
             ]
         )
@@ -42,7 +42,9 @@ class Simulation:
         conn_pos = np.add(conn_deltas, origin_agent)
 
         # Generate the connecting agents and add them to the simulation.
-        self.agents.extend([Agent(self.surface, pos, agent_radius) for pos in conn_pos])
+        self.agents.extend(
+            [Agent(self.sim.surface, pos, agent_radius) for pos in conn_pos]
+        )
 
         return conn_pos
 
@@ -69,14 +71,14 @@ class Simulation:
                 # Place this agent.
                 pos = [x_offset + agent_radius * 2 * j, line_spacing * i]
                 pos = np.add(pos, cluster_start)
-                self.agents.append(Agent(self.surface, pos, agent_radius))
+                self.agents.append(Agent(self.sim.surface, pos, agent_radius))
 
                 num_remaining_agents -= 1
 
     def generate_agents(self):
 
         # Agents will take up 0.1 of the area of the screen.
-        window_area = self.window_size * self.window_size
+        window_area = self.sim.window_size * self.sim.window_size
         total_agent_area = window_area * 0.1
         agent_area = total_agent_area / self.num_agents
 
@@ -84,7 +86,7 @@ class Simulation:
         agent_radius = math.floor(math.sqrt(agent_area / math.pi))
 
         # Where to start putting the agents in the window.
-        seed_origin = [0.2 * self.window_size, 0.5 * self.window_size]
+        seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # Because our agents are circular, we can make them fit snuggly together if we
         # slot each row of agents into the gaps between agents in the previous row.
@@ -104,61 +106,29 @@ class Simulation:
         left_conn = connectors[np.argmin(connectors, axis=0)[1]]
         self.generate_cluster_agents(line_spacing, agent_radius, left_conn)
 
-    def __init__(self):
-        self.title = "Swarm Construction"
-        self.window_size = 800
+    def update(self, fps):
+        for ag in self.agents:
+            ag.update(fps)
+
+    def draw(self):
+        for ag in self.agents:
+            ag.draw()
+
+    def main(self):
         self.num_agents = 100
-
-        # Initialise pygame.
-        pg.init()
-        self.clock = pg.time.Clock()
-        pg.display.set_caption(self.title)
-
-        # Initialise simulation.
-        self.surface = pg.display.set_mode((self.window_size, self.window_size))
-        self.running = True
         self.agents = []
+
+        self.sim = Simulation()
 
         # Generate the agents (robots!).
         self.generate_agents()
 
-    def run(self):
-        # Main loop.
-        while self.running:
-            self.update()
-            self.draw()
+        self.sim.add_draw(self.draw)
+        self.sim.add_update(self.update)
 
-        pg.quit()
-
-    def update(self):
-        # Handle events.
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                self.running = False
-            elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    self.running = False
-
-        # Update agents.
-        for player in self.agents:
-            player.update()
-
-    def draw(self):
-
-        # Draw background.
-        self.surface.fill((0, 0, 0))
-
-        # Draw agents.
-        for player in self.agents:
-            player.draw()
-
-        pg.display.update()
-
-
-def main():
-    sim = Simulation()
-    sim.run()
+        self.sim.run()
 
 
 if __name__ == "__main__":
-    main()
+    swarm_sim = SwarmConstructionSimulation()
+    swarm_sim.main()

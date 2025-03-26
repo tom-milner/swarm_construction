@@ -5,10 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python Debugger: Module",
+      "name": "Simulation",
       "type": "debugpy",
       "request": "launch",
-      "module": "swarm_construction"
+      "module": "swarm_construction.main"
+    },
+    {
+      "name": "Movement Test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "tests.movement_test"
     }
   ]
 }
