@@ -15,6 +15,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "tests.movement_test"
+    },
+    {
+      "name": "Collision Test",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "tests.collision_detection"
     }
   ]
 }
