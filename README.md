@@ -24,5 +24,14 @@ To download and run the simulation:
 
 The first run will take a while to start, but will be much quicker after that!
 
+
+## Developing
 > [!IMPORTANT]
 > When developing the project, make sure you always run using step 4.
+
+To add dependencies, use Poetry instead of pip, e.g.
+```
+poetry add my-new-dependency
+```
+
+For Poetry help, see the docs [here](https://python-poetry.org).
