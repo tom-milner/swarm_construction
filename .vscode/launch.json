@@ -27,6 +27,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "tests.single_orbit"
+    },
+    {
+      "name": "Edge Following",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "tests.edge_following"
     }
   ]
 }
