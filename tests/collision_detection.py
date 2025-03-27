@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 
-class CollisionDetection:
+class Test:
 
     def update(self, fps):
         if fps == 0:
@@ -33,7 +33,7 @@ class CollisionDetection:
     def __init__(self):
         self.agents = []
 
-    def main(self):
+    def run(self):
         # Setup the simulation
         self.sim = simulation_engine.Simulation("Collision Test", 800)
         # Add agents
@@ -65,5 +65,5 @@ class CollisionDetection:
 
 
 if __name__ == "__main__":
-    mt = CollisionDetection()
-    mt.main()
+    mt = Test()
+    mt.run()

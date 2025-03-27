@@ -1,0 +1,57 @@
+from swarm_construction.agent import Agent
+from swarm_construction.simulation_engine import Simulation
+from swarm_construction.colors import Color
+import math
+import numpy as np
+
+
+class Test:
+
+    def update(self, fps):
+        if fps == 0:
+            return
+
+        # Move the agents
+        for a in self.agents:
+            a.update(fps)
+
+    def draw(self):
+        for a in self.agents:
+            a.draw()
+
+    def __init__(self):
+        self.agents = []
+
+    def run(self):
+        # Setup the simulation
+        self.sim = Simulation("Single Orbit Test", 800)
+        # Add agents
+        middle = self.sim.window_size / 2
+        radius = 30
+
+        sun = Agent(
+            self.sim.surface, [middle, middle], radius=radius * 2, color=Color.orange
+        )
+
+        planet = Agent(self.sim.surface, radius=radius, speed=100, color=Color.yellow)
+        planet.orbit_agent = sun
+
+        moon = Agent(
+            self.sim.surface, radius=radius * 0.5, speed=150, color=Color.light_green
+        )
+        moon.orbit_agent = planet
+
+        self.agents.append(sun)
+        self.agents.append(planet)
+        self.agents.append(moon)
+
+        self.sim.add_update(self.update)
+        self.sim.add_draw(self.draw)
+
+        # Run the simulation.
+        self.sim.run()
+
+
+if __name__ == "__main__":
+    mt = Test()
+    mt.run()

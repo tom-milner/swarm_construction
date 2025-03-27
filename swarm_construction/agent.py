@@ -1,6 +1,7 @@
 import pygame as pg
 import numpy as np
 import math
+from .colors import Color
 
 
 class Agent:
@@ -9,7 +10,13 @@ class Agent:
         pass
 
     def __init__(
-        self, surface, pos, radius=30, color=(255, 255, 255), direction=math.pi, speed=0
+        self,
+        surface,
+        pos=[0, 0],
+        radius=30,
+        color=(255, 255, 255),
+        direction=math.pi,
+        speed=0,
     ):
         self.surface = surface
         self.pos = pos
@@ -18,6 +25,7 @@ class Agent:
         self.direction = direction
         self.speed = speed  # Speed is measured in pixels per second!
         self.on_collision = self._do_nothing
+        self.orbit_agent = None
 
     def update(self, fps):
         if fps == 0:
@@ -27,14 +35,24 @@ class Agent:
         # the frame rate.
         scaled_speed = self.speed / fps
 
-        # Turn speed and direction into a velocity vector.
-        v = scaled_speed * np.array(
-            [math.sin(self.direction), math.cos(self.direction)]
-        )
-        # Apply vector to current position.
-        self.pos = np.add(v, self.pos)
+        if self.orbit_agent:
+            dist = self.radius + self.orbit_agent.radius
+            ang_vel = scaled_speed / dist
+            self.direction = (self.direction - ang_vel) % (2 * math.pi)
+            perp = self.direction - (math.pi / 2)
+            orbit_vec = dist * np.array([math.sin(perp), math.cos(perp)])
+            self.pos = np.subtract(self.orbit_agent.pos, orbit_vec)
+
+        else:
+            # Turn speed and direction into a velocity vector.
+            v = scaled_speed * np.array(
+                [math.sin(self.direction), math.cos(self.direction)]
+            )
+            # Apply vector to current position.
+            self.pos = np.add(v, self.pos)
 
     def draw(self):
+
         # Circles are drawn around the position coordinate.
         pg.draw.circle(self.surface, self.color, self.pos, self.radius)
 
@@ -43,20 +61,21 @@ class Agent:
             np.array([math.sin(self.direction), math.cos(self.direction)]) * self.radius
         )
         line_end = np.add(line_end, self.pos)
-        direction_line_color = (199, 0, 57)
+        direction_line_color = Color.red
         pg.draw.line(self.surface, direction_line_color, self.pos, line_end)
 
     def check_collision(self, other_agent):
         """Check to see if this agent has collided with another"""
+
         # Get the vector between the agents.
         diff = np.subtract(self.pos, other_agent.pos)
 
         threshold = self.radius + other_agent.radius
         distance = np.linalg.norm(diff)
-        if distance < threshold:
+        if distance <= threshold:
             # Collision!
             # Work out how deep the collision is.
             norm = diff / distance
             penetration = np.subtract(norm * threshold, diff)
             return (True, penetration)
-        return (False, 0)
+        return (False, [0, 0])
