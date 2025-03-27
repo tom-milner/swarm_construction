@@ -1,5 +1,6 @@
 from .simulation_engine import Simulation
 from .agent import Agent
+from .colors import Color
 import math
 
 import numpy as np
@@ -21,7 +22,7 @@ class SwarmConstructionSimulation:
         )
         # Place the seeds relative to the origin.
         seed_pos = np.add(origin, seed_deltas)
-        seed_color = (218, 247, 166)
+        seed_color = Color.light_green
 
         # Add the seeds to the simulation.
         self.agents.extend(

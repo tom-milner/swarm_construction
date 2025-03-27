@@ -2,8 +2,7 @@ from swarm_construction import agent, simulation_engine
 import math
 
 
-class MovementTest:
-
+class Test:
     def update(self, fps):
         if fps == 0:
             return
@@ -17,7 +16,7 @@ class MovementTest:
     def draw(self):
         self.new_agent.draw()
 
-    def main(self):
+    def run(self):
         # Setup the simulation
         self.sim = simulation_engine.Simulation("Movement Test", 800)
 
@@ -37,5 +36,4 @@ class MovementTest:
 
 
 if __name__ == "__main__":
-    mt = MovementTest()
-    mt.main()
+    Test().run()
