@@ -35,7 +35,7 @@ class CollisionDetection:
 
     def main(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation("Movement Test", 800)
+        self.sim = simulation_engine.Simulation("Collision Test", 800)
         # Add agents
         middle = self.sim.window_size / 2
         offset = middle / 2

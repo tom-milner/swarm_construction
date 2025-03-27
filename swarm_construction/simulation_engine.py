@@ -25,11 +25,13 @@ class Simulation:
         self.update_callbacks = []
         self.draw_callbacks = []
 
+        self.fps = 60
+
     def run(self):
         # Main loop.
         self.running = True
         while self.running:
-            self.clock.tick()
+            self.clock.tick(self.fps)
             self.update()
             self.draw()
 
