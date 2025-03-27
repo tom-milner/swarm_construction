@@ -44,10 +44,10 @@ class Test:
 
     def _generate_cluster(self, middle, radius):
         cluster = []
-        num_rows = 20
-        num_cols = 20
+        num_rows = 32
+        num_cols = 32
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * radius))
-        start = middle / 4
+        start = [middle - num_cols * radius, middle - num_rows * radius]
 
         # generate rectangle
         for i in range(num_rows):
@@ -83,8 +83,9 @@ class Test:
         self.sim = simulation_engine.Simulation("Edge Following", 800)
 
         middle = self.sim.window_size / 2
-        radius = 15
+        radius = 10
         self.cluster = self._generate_cluster(middle, radius)
+        print(f"Number of cluster agents: {len(self.cluster)}")
 
         self.follower = Agent(self.sim.surface, radius=radius, speed=50)
         self.follower.set_orbit_agent(self.cluster[0])
