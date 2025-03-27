@@ -34,12 +34,12 @@ class Test:
         )
 
         planet = Agent(self.sim.surface, radius=radius, speed=100, color=Color.yellow)
-        planet.orbit_agent = sun
+        planet.set_orbit_agent(sun)
 
         moon = Agent(
             self.sim.surface, radius=radius * 0.5, speed=150, color=Color.light_green
         )
-        moon.orbit_agent = planet
+        moon.set_orbit_agent(planet)
 
         self.agents.append(sun)
         self.agents.append(planet)
