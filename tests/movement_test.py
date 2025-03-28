@@ -6,10 +6,10 @@ class Test:
     def update(self, fps):
         if fps == 0:
             return
-        self.new_agent.direction += self.delta / fps
+        self.new_agent._direction += self.delta / fps
 
         # If we exceed 2PI, wrap around to 0.
-        self.new_agent.direction %= 2 * math.pi
+        self.new_agent._direction %= 2 * math.pi
 
         self.new_agent.update(fps)
 
@@ -22,13 +22,11 @@ class Test:
 
         # Add one agent.
         middle = self.sim.window_size / 2
-        self.new_agent = simulation_object.SimulationObject(
-            self.sim.surface, [middle, middle]
-        )
+        self.new_agent = simulation_object.SimulationObject(self.sim, [middle, middle])
 
         self.delta = 4
-        self.new_agent.speed = 200
-        self.new_agent.direction = 0
+        self.new_agent._speed = 200
+        self.new_agent._direction = 0
 
         self.sim.add_update(self.update)
         self.sim.add_draw(self.draw)

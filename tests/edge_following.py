@@ -23,15 +23,15 @@ class Test:
                 continue
 
             # Check if we're already orbiting this agent.
-            if np.array_equal(cluster_agent.pos, self.follower._orbit_object.pos):
+            if np.array_equal(cluster_agent._pos, self.follower._orbit_object._pos):
                 continue
 
             # Start orbiting the new agent!
             self.follower.set_orbit_object(cluster_agent)
 
             # gradually speed up the follower because it's fun
-            if self.follower.speed < 200:
-                self.follower.speed += 10
+            if self.follower._speed < 200:
+                self.follower._speed += 10
 
             break
 
@@ -55,7 +55,7 @@ class Test:
             for j in range(num_cols):
                 pos = [x_offset + radius * 2 * j, line_spacing * i]
                 a = SimulationObject(
-                    self.sim.surface,
+                    self.sim,
                     pos=np.add(start, pos),
                     radius=radius,
                     color=Color.light_green,
@@ -68,7 +68,7 @@ class Test:
             x_offset = 0 if i % 2 == 0 else radius
             pos = [x_offset + radius * 2 * round(j / 2), line_spacing * i]
             a = SimulationObject(
-                self.sim.surface,
+                self.sim,
                 pos=np.add(start, pos),
                 radius=radius,
                 color=Color.light_green,
@@ -87,7 +87,7 @@ class Test:
         self.cluster = self._generate_cluster(middle, radius)
         print(f"Number of cluster agents: {len(self.cluster)}")
 
-        self.follower = SimulationObject(self.sim.surface, radius=radius, speed=50)
+        self.follower = SimulationObject(self.sim, radius=radius, speed=50)
         self.follower.set_orbit_object(self.cluster[0])
 
         self.agents.extend(self.cluster)

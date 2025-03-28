@@ -30,16 +30,16 @@ class Test:
         radius = 30
 
         sun = SimulationObject(
-            self.sim.surface, [middle, middle], radius=radius * 2, color=Color.orange
+            self.sim, [middle, middle], radius=radius * 2, color=Color.orange
         )
 
         planet = SimulationObject(
-            self.sim.surface, radius=radius, speed=100, color=Color.yellow
+            self.sim, radius=radius, speed=100, color=Color.yellow
         )
         planet.set_orbit_object(sun)
 
         moon = SimulationObject(
-            self.sim.surface, radius=radius * 0.5, speed=150, color=Color.light_green
+            self.sim, radius=radius * 0.5, speed=150, color=Color.light_green
         )
         moon.set_orbit_object(planet)
 
