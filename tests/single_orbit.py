@@ -1,4 +1,4 @@
-from swarm_construction.agent import Agent
+from swarm_construction.simulation_object import SimulationObject
 from swarm_construction.simulation_engine import Simulation
 from swarm_construction.colors import Color
 import math
@@ -29,17 +29,19 @@ class Test:
         middle = self.sim.window_size / 2
         radius = 30
 
-        sun = Agent(
+        sun = SimulationObject(
             self.sim.surface, [middle, middle], radius=radius * 2, color=Color.orange
         )
 
-        planet = Agent(self.sim.surface, radius=radius, speed=100, color=Color.yellow)
-        planet.set_orbit_agent(sun)
+        planet = SimulationObject(
+            self.sim.surface, radius=radius, speed=100, color=Color.yellow
+        )
+        planet.set_orbit_object(sun)
 
-        moon = Agent(
+        moon = SimulationObject(
             self.sim.surface, radius=radius * 0.5, speed=150, color=Color.light_green
         )
-        moon.set_orbit_agent(planet)
+        moon.set_orbit_object(planet)
 
         self.agents.append(sun)
         self.agents.append(planet)

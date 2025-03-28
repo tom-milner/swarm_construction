@@ -1,5 +1,5 @@
 from .simulation_engine import Simulation
-from .agent import Agent
+from .simulation_object import SimulationObject
 from .colors import Color
 import math
 
@@ -27,7 +27,7 @@ class SwarmConstructionSimulation:
         # Add the seeds to the simulation.
         self.agents.extend(
             [
-                Agent(self.sim.surface, pos, agent_radius, color=seed_color)
+                SimulationObject(self.sim.surface, pos, agent_radius, color=seed_color)
                 for pos in seed_pos
             ]
         )
@@ -44,7 +44,7 @@ class SwarmConstructionSimulation:
 
         # Generate the connecting agents and add them to the simulation.
         self.agents.extend(
-            [Agent(self.sim.surface, pos, agent_radius) for pos in conn_pos]
+            [SimulationObject(self.sim.surface, pos, agent_radius) for pos in conn_pos]
         )
 
         return conn_pos
@@ -72,7 +72,9 @@ class SwarmConstructionSimulation:
                 # Place this agent.
                 pos = [x_offset + agent_radius * 2 * j, line_spacing * i]
                 pos = np.add(pos, cluster_start)
-                self.agents.append(Agent(self.sim.surface, pos, agent_radius))
+                self.agents.append(
+                    SimulationObject(self.sim.surface, pos, agent_radius)
+                )
 
                 num_remaining_agents -= 1
 

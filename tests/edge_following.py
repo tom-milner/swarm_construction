@@ -1,4 +1,4 @@
-from swarm_construction.agent import Agent
+from swarm_construction.simulation_object import SimulationObject
 from swarm_construction import simulation_engine
 from swarm_construction.colors import Color
 import math
@@ -23,11 +23,11 @@ class Test:
                 continue
 
             # Check if we're already orbiting this agent.
-            if np.array_equal(cluster_agent.pos, self.follower._orbit_agent.pos):
+            if np.array_equal(cluster_agent.pos, self.follower._orbit_object.pos):
                 continue
 
             # Start orbiting the new agent!
-            self.follower.set_orbit_agent(cluster_agent)
+            self.follower.set_orbit_object(cluster_agent)
 
             # gradually speed up the follower because it's fun
             if self.follower.speed < 200:
@@ -54,7 +54,7 @@ class Test:
             x_offset = 0 if i % 2 == 0 else radius
             for j in range(num_cols):
                 pos = [x_offset + radius * 2 * j, line_spacing * i]
-                a = Agent(
+                a = SimulationObject(
                     self.sim.surface,
                     pos=np.add(start, pos),
                     radius=radius,
@@ -67,7 +67,7 @@ class Test:
         while i < (num_rows + 6):
             x_offset = 0 if i % 2 == 0 else radius
             pos = [x_offset + radius * 2 * round(j / 2), line_spacing * i]
-            a = Agent(
+            a = SimulationObject(
                 self.sim.surface,
                 pos=np.add(start, pos),
                 radius=radius,
@@ -87,8 +87,8 @@ class Test:
         self.cluster = self._generate_cluster(middle, radius)
         print(f"Number of cluster agents: {len(self.cluster)}")
 
-        self.follower = Agent(self.sim.surface, radius=radius, speed=50)
-        self.follower.set_orbit_agent(self.cluster[0])
+        self.follower = SimulationObject(self.sim.surface, radius=radius, speed=50)
+        self.follower.set_orbit_object(self.cluster[0])
 
         self.agents.extend(self.cluster)
         self.agents.append(self.follower)

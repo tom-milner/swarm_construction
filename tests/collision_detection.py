@@ -1,4 +1,4 @@
-from swarm_construction.agent import Agent
+from swarm_construction.simulation_object import SimulationObject
 from swarm_construction import simulation_engine
 import math
 import numpy as np
@@ -41,14 +41,14 @@ class Test:
         offset = middle / 2
         speed = 100
 
-        self.a_left = Agent(
+        self.a_left = SimulationObject(
             self.sim.surface,
             [middle - offset, middle],
             direction=math.pi / 2,
             speed=speed,
         )
 
-        self.a_right = Agent(
+        self.a_right = SimulationObject(
             self.sim.surface,
             [middle + offset, middle],
             direction=math.pi * 3 / 2,

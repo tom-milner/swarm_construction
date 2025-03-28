@@ -1,4 +1,4 @@
-from swarm_construction import agent, simulation_engine
+from swarm_construction import simulation_engine, simulation_object
 import math
 
 
@@ -22,7 +22,9 @@ class Test:
 
         # Add one agent.
         middle = self.sim.window_size / 2
-        self.new_agent = agent.Agent(self.sim.surface, [middle, middle])
+        self.new_agent = simulation_object.SimulationObject(
+            self.sim.surface, [middle, middle]
+        )
 
         self.delta = 4
         self.new_agent.speed = 200
