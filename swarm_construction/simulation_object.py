@@ -2,6 +2,12 @@ import pygame as pg
 import numpy as np
 import math
 from .colors import Color
+from enum import Enum
+
+
+class OrbitDirection(Enum):
+    CLOCKWISE = 0
+    ANTI_CLOCKWISE = 1
 
 
 class SimulationObject:
@@ -18,17 +24,21 @@ class SimulationObject:
         direction=math.pi,
         speed=0,
     ):
-        # Private vars.
+        # Private vars - agents can't use these!
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
-        self._color = color
         self._direction = direction
-        self._speed = speed  # Speed is measured in pixels per second!
         self._orbit_object = None
+        self._orbit_direction = OrbitDirection.CLOCKWISE
 
         # Public - agent can use these
         self.on_collision = self._do_nothing
+        self.color = color
+        self.speed = speed  # Speed is measured in pixels per second!
+
+        # Add ourselves to the sim_engine.
+        self._sim_engine._objects.append(self)
 
     def _move_orbit(self, scaled_speed):
         # I don't why I did this, but this bit is implemented backwards!
@@ -40,10 +50,11 @@ class SimulationObject:
         # Apply the object velocity as an angular velocity.
         dist = self._radius + self._orbit_object._radius
         ang_vel = scaled_speed / dist
-        self._direction = (self._direction - ang_vel) % (2 * math.pi)
+        orbit_direction = -1 if self._orbit_direction == OrbitDirection.CLOCKWISE else 1
+        self._direction = (self._direction + ang_vel * orbit_direction) % (2 * math.pi)
 
         # Calculate the angle perpendicular to our current direction.
-        perp = self._direction - (math.pi / 2)
+        perp = self._direction + orbit_direction * (math.pi / 2)
 
         # Position ourselves in the orbit at that angle.
         orbit_vec = dist * np.array([math.sin(perp), math.cos(perp)])
@@ -63,7 +74,7 @@ class SimulationObject:
 
         # Speed is measured in pixels/second. We convert it to pixels/frame using
         # the frame rate.
-        scaled_speed = self._speed / fps
+        scaled_speed = self.speed / fps
 
         if self._orbit_object:
             self._move_orbit(scaled_speed)
@@ -72,8 +83,10 @@ class SimulationObject:
 
     def draw(self):
 
+        # At the moment, all agents look the same.
+        # This can be changed by moving the draw function into the agent.
         # Circles are drawn around the position coordinate.
-        pg.draw.circle(self._sim_engine.surface, self._color, self._pos, self._radius)
+        pg.draw.circle(self._sim_engine.surface, self.color, self._pos, self._radius)
 
         # Draw a line to indicate the circles current direction.
         line_end = (
@@ -105,7 +118,13 @@ class SimulationObject:
             return (True, penetration)
         return (False, np.array([0, 0]))
 
-    def set_orbit_object(self, orbit_object):
+    def set_orbit_object(self, orbit_object, orbit_direction=OrbitDirection.CLOCKWISE):
+        self._orbit_direction = orbit_direction
+
+        # If we're already orbiting this object, return
+        if orbit_object == self._orbit_object:
+            return
+
         self._orbit_object = orbit_object
 
         # If we're already touching the edge of the object, change our
@@ -120,3 +139,23 @@ class SimulationObject:
         # If we're not touching the object, position ourselves so that we're
         # perpendicular to it at our current direction.
         self._move_orbit(0)
+
+    def get_nearest_neighbours(self, n):
+        # Naive implementation - replace with Spacial Hashing.
+        neighbours = []
+        for obj in self._sim_engine._objects:
+            # Skip ourselves.
+            if np.array_equal(obj._pos, self._pos):
+                continue
+
+            diff = np.subtract(obj._pos, self._pos)
+            dist = np.linalg.norm(diff)
+            entry = [obj, dist]
+
+            neighbours.append(entry)
+
+        neighbours = np.array(neighbours)
+        return neighbours[neighbours[:, 1].argsort()][0:n]
+
+    def is_orbiting(self):
+        return bool(self._orbit_object)

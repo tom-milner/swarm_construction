@@ -11,36 +11,36 @@ class Test:
         if fps == 0:
             return
 
-        # Move the agents
-        for a in self.agents:
+        # Move the objects
+        for a in self.objects:
             a.update(fps)
 
-        for cluster_agent in self.cluster:
+        for cluster_object in self.cluster:
 
-            # Check if we're touching the agent.
-            col = self.follower.check_collision(cluster_agent)
+            # Check if we're touching the object.
+            col = self.follower.check_collision(cluster_object)
             if not col[0]:
                 continue
 
-            # Check if we're already orbiting this agent.
-            if np.array_equal(cluster_agent._pos, self.follower._orbit_object._pos):
+            # Check if we're already orbiting this object.
+            if np.array_equal(cluster_object._pos, self.follower._orbit_object._pos):
                 continue
 
-            # Start orbiting the new agent!
-            self.follower.set_orbit_object(cluster_agent)
+            # Start orbiting the new object!
+            self.follower.set_orbit_object(cluster_object)
 
             # gradually speed up the follower because it's fun
-            if self.follower._speed < 200:
-                self.follower._speed += 10
+            if self.follower.speed < 200:
+                self.follower.speed += 10
 
             break
 
     def draw(self):
-        for a in self.agents:
+        for a in self.objects:
             a.draw()
 
     def __init__(self):
-        self.agents = []
+        self.objects = []
 
     def _generate_cluster(self, middle, radius):
         cluster = []
@@ -85,13 +85,13 @@ class Test:
         middle = self.sim.window_size / 2
         radius = 10
         self.cluster = self._generate_cluster(middle, radius)
-        print(f"Number of cluster agents: {len(self.cluster)}")
+        print(f"Number of cluster objects: {len(self.cluster)}")
 
         self.follower = SimulationObject(self.sim, radius=radius, speed=50)
         self.follower.set_orbit_object(self.cluster[0])
 
-        self.agents.extend(self.cluster)
-        self.agents.append(self.follower)
+        self.objects.extend(self.cluster)
+        self.objects.append(self.follower)
 
         self.sim.add_update(self.update)
         self.sim.add_draw(self.draw)

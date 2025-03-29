@@ -25,6 +25,8 @@ class Simulation:
         self.update_callbacks = []
         self.draw_callbacks = []
 
+        self._objects = []
+
         self.fps = 60
 
     def run(self):

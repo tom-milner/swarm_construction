@@ -25,7 +25,7 @@ class Test:
         self.new_agent = simulation_object.SimulationObject(self.sim, [middle, middle])
 
         self.delta = 4
-        self.new_agent._speed = 200
+        self.new_agent.speed = 200
         self.new_agent._direction = 0
 
         self.sim.add_update(self.update)

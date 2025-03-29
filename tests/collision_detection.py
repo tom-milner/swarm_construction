@@ -18,8 +18,8 @@ class Test:
         col = self.a_left.check_collision(self.a_right)
         if col[0]:  # Collision!
             # Stop agents.
-            self.a_right._speed = 0
-            self.a_left._speed = 0
+            self.a_right.speed = 0
+            self.a_left.speed = 0
 
             # If the agents are going quick enough, the collision will only be
             # registered once they are some way through each other, so we need
