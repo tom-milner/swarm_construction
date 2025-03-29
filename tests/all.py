@@ -1,10 +1,10 @@
-import swarm_construction.simulation.tests.all
+import swarm_construction.simulator.tests.all
 from . import simple_agent_rules
 
 
 tests = [
     # Run the simulator tests.
-    swarm_construction.simulation.tests.all,
+    swarm_construction.simulator.tests.all,
     # Run the simple Agent test.
     simple_agent_rules,
 ]

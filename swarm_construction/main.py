@@ -1,6 +1,6 @@
-from .simulation.engine import SimulationEngine
-from .simulation.object import SimulationObject
-from .simulation.colors import Color
+from .simulator.engine import SimulationEngine
+from .simulator.object import SimulationObject
+from .simulator.colors import Color
 import math
 
 import numpy as np

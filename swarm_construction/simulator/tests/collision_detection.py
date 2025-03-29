@@ -1,5 +1,5 @@
-from swarm_construction.simulation.object import SimulationObject
-from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulator.object import SimulationObject
+from swarm_construction.simulator.engine import SimulationEngine
 import math
 import numpy as np
 

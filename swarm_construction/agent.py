@@ -1,5 +1,5 @@
-from .simulation.object import SimulationObject
-from .simulation.colors import Color
+from .simulator.object import SimulationObject
+from .simulator.colors import Color
 
 
 class Agent(SimulationObject):

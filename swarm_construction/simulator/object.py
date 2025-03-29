@@ -3,7 +3,7 @@ import numpy as np
 import math
 from .colors import Color
 from enum import Enum
-from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulator.engine import SimulationEngine
 
 
 class OrbitDirection(Enum):

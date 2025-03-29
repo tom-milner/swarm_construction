@@ -1,4 +1,4 @@
-from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulator.engine import SimulationEngine
 from swarm_construction.agent import Agent
 import math
 import numpy as np

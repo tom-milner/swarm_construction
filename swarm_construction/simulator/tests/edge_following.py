@@ -1,6 +1,6 @@
-from swarm_construction.simulation.object import SimulationObject
-from swarm_construction.simulation.engine import SimulationEngine
-from swarm_construction.simulation.colors import Color
+from swarm_construction.simulator.object import SimulationObject
+from swarm_construction.simulator.engine import SimulationEngine
+from swarm_construction.simulator.colors import Color
 import math
 import numpy as np
 
