@@ -40,7 +40,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = SimulationEngine("Simple Agent Rules Test", 800)
+        self.sim = SimulationEngine("Agent Edge Following Test", 800)
         middle = self.sim.window_size / 2
 
         # Add stationary agents.

@@ -40,3 +40,9 @@ To run tests, run
 ```
 poetry run python -m tests.my_test
 ```
+
+e.g. 
+
+```
+poetry run python -m tests.all
+```

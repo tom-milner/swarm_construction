@@ -80,7 +80,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = SimulationEngine("Edge Following", 800)
+        self.sim = SimulationEngine("SimulationObject Edge Following", 800)
 
         middle = self.sim.window_size / 2
         radius = 10
