@@ -57,6 +57,10 @@ class SimulationObject:
         # Add ourselves to the Simulation.
         self._sim_engine._objects.append(self)
 
+        # Add our update and draw functions to the Simulation.
+        self._sim_engine.add_update(self.update)
+        self._sim_engine.add_draw(self.draw)
+
     def _move_orbit(self, pixels_per_frame: float):
         """Move the object in a circular orbit path around self.orbit_object.
         The direction of the object points along (tangential to) the orbit path.
