@@ -35,7 +35,7 @@
       "module": "tests.edge_following"
     },
     {
-      "name": "Seperate Agent Test",
+      "name": "separate Agent Test",
       "type": "debugpy",
       "request": "launch",
       "module": "tests.simple_agent_rules"

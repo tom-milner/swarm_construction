@@ -50,7 +50,7 @@ class SimulationEngine:
         2. Draw
         Draw whatever has been computed by the Update() function to the screen.
 
-        These are split up to keep logic seperate from graphics, just to make things a bit cleaner.
+        These are split up to keep logic separate from graphics, just to make things a bit cleaner.
         Update and Draw are called once per frame.
         """
 
