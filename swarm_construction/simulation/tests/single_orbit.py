@@ -1,6 +1,6 @@
-from swarm_construction.simulation_object import SimulationObject, OrbitDirection
-from swarm_construction.simulation_engine import Simulation
-from swarm_construction.colors import Color
+from swarm_construction.simulation.object import SimulationObject, OrbitDirection
+from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulation.colors import Color
 import math
 import numpy as np
 
@@ -24,7 +24,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = Simulation("Single Orbit Test", 800)
+        self.sim = SimulationEngine("Single Orbit Test", 800)
         # Add agents
         middle = self.sim.window_size / 2
         radius = 30

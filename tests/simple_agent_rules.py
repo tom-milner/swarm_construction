@@ -1,4 +1,4 @@
-from swarm_construction.simulation_engine import Simulation
+from swarm_construction.simulation.engine import SimulationEngine
 from swarm_construction.agent import Agent
 import math
 import numpy as np
@@ -40,7 +40,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = Simulation("Simple Agent Rules Test", 800)
+        self.sim = SimulationEngine("Simple Agent Rules Test", 800)
         middle = self.sim.window_size / 2
 
         # Add stationary agents.

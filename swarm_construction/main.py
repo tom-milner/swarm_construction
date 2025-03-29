@@ -1,9 +1,12 @@
-from .simulation_engine import Simulation
-from .simulation_object import SimulationObject
-from .colors import Color
+from .simulation.engine import SimulationEngine
+from .simulation.object import SimulationObject
+from .simulation.colors import Color
 import math
 
 import numpy as np
+
+# NOTE: This uses old code! we shouldn't interact with the underlying SimulationObject stuff directly.
+# TODO: Update this to use Agents.
 
 
 class SwarmConstructionSimulation:
@@ -118,7 +121,7 @@ class SwarmConstructionSimulation:
         self.num_agents = 100
         self.agents = []
 
-        self.sim = Simulation("Swarm Construction", 800)
+        self.sim = SimulationEngine("Swarm Construction", 800)
 
         # Generate the agents (robots!).
         self.generate_agents()

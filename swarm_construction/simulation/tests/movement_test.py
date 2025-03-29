@@ -1,4 +1,5 @@
-from swarm_construction import simulation_engine, simulation_object
+from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulation.object import SimulationObject
 import math
 
 
@@ -18,11 +19,11 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation("Movement Test", 800)
+        self.sim = SimulationEngine("Movement Test", 800)
 
         # Add one agent.
         middle = self.sim.window_size / 2
-        self.new_agent = simulation_object.SimulationObject(self.sim, [middle, middle])
+        self.new_agent = SimulationObject(self.sim, [middle, middle])
 
         self.delta = 4
         self.new_agent.speed = 200

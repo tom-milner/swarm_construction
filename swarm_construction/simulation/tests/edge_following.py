@@ -1,6 +1,6 @@
-from swarm_construction.simulation_object import SimulationObject
-from swarm_construction import simulation_engine
-from swarm_construction.colors import Color
+from swarm_construction.simulation.object import SimulationObject
+from swarm_construction.simulation.engine import SimulationEngine
+from swarm_construction.simulation.colors import Color
 import math
 import numpy as np
 
@@ -80,7 +80,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation("Edge Following", 800)
+        self.sim = SimulationEngine("Edge Following", 800)
 
         middle = self.sim.window_size / 2
         radius = 10

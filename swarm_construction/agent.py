@@ -1,6 +1,5 @@
-from .simulation_object import SimulationObject
-import pygame as pg
-from .colors import Color
+from .simulation.object import SimulationObject
+from .simulation.colors import Color
 
 
 class Agent(SimulationObject):

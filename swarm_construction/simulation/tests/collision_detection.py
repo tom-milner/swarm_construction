@@ -1,5 +1,5 @@
-from swarm_construction.simulation_object import SimulationObject
-from swarm_construction import simulation_engine
+from swarm_construction.simulation.object import SimulationObject
+from swarm_construction.simulation.engine import SimulationEngine
 import math
 import numpy as np
 
@@ -35,7 +35,7 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation("Collision Test", 800)
+        self.sim = SimulationEngine("Collision Test", 800)
         # Add agents
         middle = self.sim.window_size / 2
         offset = middle / 2
