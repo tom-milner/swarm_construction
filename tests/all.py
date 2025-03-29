@@ -1,5 +1,12 @@
-from . import movement_test, collision_detection, single_orbit, edge_following
+import swarm_construction.simulator.tests.all
+from . import simple_agent_rules
 
-tests = [movement_test, collision_detection, single_orbit, edge_following]
+
+tests = [
+    # Run the simulator tests.
+    swarm_construction.simulator.tests.all,
+    # Run the simple Agent test.
+    simple_agent_rules,
+]
 
 [t.Test().run() for t in tests]

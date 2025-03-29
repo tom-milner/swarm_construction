@@ -1,5 +1,5 @@
-from swarm_construction.agent import Agent
-from swarm_construction import simulation_engine
+from swarm_construction.simulator.object import SimulationObject
+from swarm_construction.simulator.engine import SimulationEngine
 import math
 import numpy as np
 
@@ -24,7 +24,7 @@ class Test:
             # If the agents are going quick enough, the collision will only be
             # registered once they are some way through each other, so we need
             # to reposition the agents so that they're only just touching.
-            self.a_right.pos = np.subtract(self.a_right.pos, col[1])
+            self.a_right._pos = np.subtract(self.a_right._pos, col[1])
 
     def draw(self):
         for a in self.agents:
@@ -35,21 +35,21 @@ class Test:
 
     def run(self):
         # Setup the simulation
-        self.sim = simulation_engine.Simulation("Collision Test", 800)
+        self.sim = SimulationEngine("Collision Test", 800)
         # Add agents
         middle = self.sim.window_size / 2
         offset = middle / 2
         speed = 100
 
-        self.a_left = Agent(
-            self.sim.surface,
+        self.a_left = SimulationObject(
+            self.sim,
             [middle - offset, middle],
             direction=math.pi / 2,
             speed=speed,
         )
 
-        self.a_right = Agent(
-            self.sim.surface,
+        self.a_right = SimulationObject(
+            self.sim,
             [middle + offset, middle],
             direction=math.pi * 3 / 2,
             speed=speed,
