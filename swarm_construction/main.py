@@ -195,8 +195,7 @@ class SwarmConstructionSimulation:
         )
         scaled_shape.save("scaled_shape_test.bmp")
         print(scaled_shape.size)
-        TargetShape.shape = scaled_shape
-        TargetShape.origin_pos = seed_origin
+        self.target_shape = TargetShape(seed_origin, scaled_shape, self.sim)
 
     def main(self):
         self.sim = SimulationEngine("Swarm Construction", 800)

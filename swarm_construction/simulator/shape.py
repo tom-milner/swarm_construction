@@ -2,6 +2,7 @@ import pygame as pg
 import numpy as np
 from swarm_construction.simulator.engine import SimulationEngine
 from PIL import Image
+import pygame as pg
 
 
 class TargetShape:
@@ -15,9 +16,18 @@ class TargetShape:
         self._sim_engine.add_draw(self.draw)
 
     def draw(self):
-        # this doesnt work
-        # think im just not using it right
-        # this might be useful?
-        # https://stackoverflow.com/questions/25202092/pil-and-pygame-image
 
-        self._sim_engine.surface.blit(self.shape, self.origin_pos)
+        # Convert the PIL image into a format that pygame will recognise, and store it as raw pixels.
+        # pygame formats: https://www.pygame.org/docs/ref/image.html#pygame.image.frombuffer
+        image_format = "RGB"
+        raw_image = self.shape.convert(image_format).tobytes()
+
+        # Turn the image into a pygame image.
+        pygame_image = pg.image.fromstring(raw_image, self.shape.size, image_format)
+
+        # TODO: We don't need to convert the image every frame, only once.
+        # Would be a good idea to move the conversion code to the __init__ function, store the converted image,
+        # and reference it in the below .blip(...) function call.
+
+        # Draw the image.
+        self._sim_engine.surface.blit(pygame_image, self.origin_pos)
