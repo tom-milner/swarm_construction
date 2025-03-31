@@ -7,6 +7,7 @@ import math
 import numpy as np
 from PIL import Image
 
+
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
 
@@ -174,21 +175,24 @@ class SwarmConstructionSimulation:
         )
 
     def place_shape(self, shape_file):
-        # shape area is set to the same as the area of robots currently 
+        # shape area is set to the same as the area of robots currently
         shape_area_proportion = 0.1
-        window_area = self.sim.window_size ** 2
+        window_area = self.sim.window_size**2
         goal_shape_area = window_area * shape_area_proportion
 
         # gets origin for correct placement
         seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
-        # this whole thing scales the inputted shape file to match the robot area 
+        # this whole thing scales the inputted shape file to match the robot area
         shape = Image.open(shape_file)
         init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
         print(init_shape_area)
 
-        scale_factor = math.sqrt(goal_shape_area/init_shape_area)
-        scaled_shape = shape.resize((int(shape.width * scale_factor), int(shape.height * scale_factor)), Image.NEAREST)
+        scale_factor = math.sqrt(goal_shape_area / init_shape_area)
+        scaled_shape = shape.resize(
+            (int(shape.width * scale_factor), int(shape.height * scale_factor)),
+            Image.NEAREST,
+        )
         scaled_shape.save("scaled_shape_test.bmp")
         print(scaled_shape.size)
         TargetShape.shape = scaled_shape
