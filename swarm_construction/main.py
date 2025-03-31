@@ -1,10 +1,11 @@
 from .simulator.engine import SimulationEngine
 from .simulator.colors import Color
 from .agent import Agent
+from .simulator.shape import TargetShape
 
 import math
 import numpy as np
-
+from PIL import Image
 
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
@@ -172,12 +173,35 @@ class SwarmConstructionSimulation:
             num_agents, line_spacing, column_spacing, left_conn
         )
 
+    def place_shape(self, shape_file):
+        # shape area is set to the same as the area of robots currently 
+        shape_area_proportion = 0.1
+        window_area = self.sim.window_size ** 2
+        goal_shape_area = window_area * shape_area_proportion
+
+        # gets origin for correct placement
+        seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
+
+        # this whole thing scales the inputted shape file to match the robot area 
+        shape = Image.open(shape_file)
+        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
+        print(init_shape_area)
+
+        scale_factor = math.sqrt(goal_shape_area/init_shape_area)
+        scaled_shape = shape.resize((int(shape.width * scale_factor), int(shape.height * scale_factor)), Image.NEAREST)
+        scaled_shape.save("scaled_shape_test.bmp")
+        print(scaled_shape.size)
+        TargetShape.shape = scaled_shape
+        TargetShape.origin_pos = seed_origin
+
     def main(self):
         self.sim = SimulationEngine("Swarm Construction", 800)
         self.agents = []
 
         # Place the agents (robots!) in the simulation.
         self.place_agents(100)
+
+        self.place_shape("test_shape.bmp")
 
         # TESTING: make the last one move.
         self.agents[-1].speed = 100
