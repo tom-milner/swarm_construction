@@ -187,7 +187,8 @@ class SwarmConstructionSimulation:
             Image.NEAREST,
         )
         # This flips the shape, may need to be removed if we change how we generate shapes
-        scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
+        # NOTE not required when using shape_create_gui to make bmp file!
+        # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
         scaled_shape.save("scaled_shape_test.bmp")
 
         # converts image to numpy array
@@ -222,7 +223,7 @@ class SwarmConstructionSimulation:
         # origin of the seed agents
         self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
-        self.place_shape("test_shape.bmp")
+        self.place_shape("test_shape2.bmp")
         # Place the agents (robots!) in the simulation.
         self.place_agents(100)
 
