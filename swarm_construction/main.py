@@ -1,9 +1,11 @@
 from .simulator.engine import SimulationEngine
 from .simulator.colors import Color
 from .agent import Agent
+from .simulator.shape import TargetShape
 
 import math
 import numpy as np
+from PIL import Image
 
 
 class SwarmConstructionSimulation:
@@ -172,10 +174,43 @@ class SwarmConstructionSimulation:
             num_agents, line_spacing, column_spacing, left_conn
         )
 
+    def place_shape(self, shape_file):
+        # shape area is set to the same as the area of robots currently
+        shape_area_proportion = 0.1
+        window_area = self.sim.window_size**2
+        goal_shape_area = window_area * shape_area_proportion
+
+        # this whole thing scales the inputted shape file to match the robot area
+        shape = Image.open(shape_file)
+        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
+
+        scale_factor = math.sqrt(goal_shape_area / init_shape_area)
+        scaled_shape = shape.resize(
+            (int(shape.width * scale_factor), int(shape.height * scale_factor)),
+            Image.NEAREST,
+        )
+        # This flips the shape, may need to be removed if we change how we generate shapes
+        scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
+        scaled_shape.save("scaled_shape_test.bmp")
+
+        # gets origin for correct placement
+        # This is the seed origin - the height of the shape (y axis) due to silly coordinate systems
+        # shape_origin is therefore the pygame coordinates of the top left corner of the image
+        # This assumes that the bottom left corner of the image is included in the shape
+        # nothing to stop the image being placed off the screen currently
+        shape_origin = [
+            0.2 * self.sim.window_size,
+            0.5 * self.sim.window_size - scaled_shape.height,
+        ]
+
+        # Instantiates TargetShape class with shape data
+        self.target_shape = TargetShape(shape_origin, scaled_shape, self.sim)
+
     def main(self):
         self.sim = SimulationEngine("Swarm Construction", 800)
         self.agents = []
 
+        self.place_shape("test_shape.bmp")
         # Place the agents (robots!) in the simulation.
         self.place_agents(100)
 
