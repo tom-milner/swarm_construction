@@ -147,9 +147,6 @@ class SwarmConstructionSimulation:
         # Calculate how big we can make the agents given our current window size.
         Agent.radius = self.calculate_column_spacing(self.sim.window_size, num_agents)
 
-        # The position to build the seed agents around in the window.
-        seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
-
         # Because our agents are circular, we can make them fit snuggly together if we
         # slot each row of agents into the gaps between agents in the previous row.
         # line_spacing is the y spacing between rows to make them all snuggly, and
@@ -158,7 +155,7 @@ class SwarmConstructionSimulation:
         column_spacing = Agent.radius
 
         # Generate the seed agents around the origin.
-        seed_pos = self.generate_seeds(line_spacing, column_spacing, seed_origin)
+        seed_pos = self.generate_seeds(line_spacing, column_spacing, self.seed_origin)
         num_agents -= len(seed_pos)
 
         #  Generate the connector agents at the bottom of the seed.
@@ -193,14 +190,26 @@ class SwarmConstructionSimulation:
         scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
         scaled_shape.save("scaled_shape_test.bmp")
 
-        # gets origin for correct placement
-        # This is the seed origin - the height of the shape (y axis) due to silly coordinate systems
-        # shape_origin is therefore the pygame coordinates of the top left corner of the image
-        # This assumes that the bottom left corner of the image is included in the shape
-        # nothing to stop the image being placed off the screen currently
+        # converts image to numpy array
+        shape_array = np.array(scaled_shape)
+
+        # finds the bottom left most white pixel in the scaled shape
+        # in the array this is actually max y (row) with min x (col)
+        # this finds the indices of all white pixels
+        white_px_index = np.argwhere(shape_array == True)
+
+        # confusingly when dealing with the image through pillow pixels are identified as [x,y]
+        # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
+        max_y_px = white_px_index[white_px_index[:, 0] == np.max(white_px_index[:, 0])]
+        origin_px = max_y_px[np.argmin(max_y_px[:, 1])]
+
+        # shape_origin is the location for the top left pixel in the image - of any colour
+        # self.seed_origin is the centre of the seeds in format [x,y] (with 0,0 in top left corner)
+        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
+        # in format [y,x] (silly)
         shape_origin = [
-            0.2 * self.sim.window_size,
-            0.5 * self.sim.window_size - scaled_shape.height,
+            self.seed_origin[0] - origin_px[1],
+            self.seed_origin[1] - origin_px[0],
         ]
 
         # Instantiates TargetShape class with shape data
@@ -209,6 +218,9 @@ class SwarmConstructionSimulation:
     def main(self):
         self.sim = SimulationEngine("Swarm Construction", 800)
         self.agents = []
+
+        # origin of the seed agents
+        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         self.place_shape("test_shape.bmp")
         # Place the agents (robots!) in the simulation.
