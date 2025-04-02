@@ -223,14 +223,14 @@ class SimulationObject:
 
             # NOTE: technically, we need to reposition ourselves if the overlap is too high (as we cannot exist inside another object), but the _move_orbit function handles this already.
 
-        # If we're not touching the object, just postiion ourselves so that we're
+        # If we're not touching the object, just position ourselves so that we're
         # perpendicular to it at our current direction.
 
         # The _move_orbit function does everything else!
         self._move_orbit(0)
 
     def get_nearest_neighbours(self, n: int):
-        """Get a sorted list of the SimulationObjects nearest to this object in the Simulation.
+        """Get a sorted list of the SimulationObjects nearest to this object in the Simulation, along with their distances.
 
         Todo:
             This is inefficient - switch to use Spatial Hashing if things start running slowly!
@@ -239,7 +239,7 @@ class SimulationObject:
             n (int): Number of neighbours to return.
 
         Returns:
-            list: A list of length n with the nearest SimulationObjects in the simulation.
+            list: A list of length n with the nearest SimulationObjects in the simulation, along with their distances.
         """
 
         # Naive implementation - replace with Spatial Hashing.
@@ -261,7 +261,7 @@ class SimulationObject:
             entry = [obj, dist]
             neighbours.append(entry)
 
-        # Turn neghbours into numpy array, and sort based on distance.
+        # Turn neighbours into numpy array, and sort based on distance.
         neighbours = np.array(neighbours)
         return neighbours[neighbours[:, 1].argsort()][0:n]
 
