@@ -47,6 +47,12 @@
       "module": "swarm_construction.shape.basic_shape_create"
     },
     {
+      "name": "Shape creation gui",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.shape.shape_create_gui"
+    },
+    {
       "name": "Localisation",
       "type": "debugpy",
       "request": "launch",
