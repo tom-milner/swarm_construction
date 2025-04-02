@@ -230,13 +230,14 @@ class SwarmConstructionSimulation:
         self.shape_area_proportion = 0.1
 
         self.place_shape("test_shape2.bmp")
-        self.place_agents(1000)
+        self.place_agents(100)
 
         # TESTING: make the last one move.
         self.agents[-1].speed = 100
+        [self.sim.add_update(agent.update) for agent in self.agents]
+        [self.sim.add_draw(agent.draw) for agent in self.agents]
 
         self.sim.run()
-
 
 if __name__ == "__main__":
     swarm_sim = SwarmConstructionSimulation()

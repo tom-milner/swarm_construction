@@ -30,6 +30,7 @@ class SimulationObject:
         color: Color = Color.white,
         direction: float = math.pi,
         speed: int = 0,
+        label: int = None
     ):
         """Initialise a SimulationObject to use in a SimulationEngine simulation.
 
@@ -49,10 +50,12 @@ class SimulationObject:
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
-
+        
+        
         # Initialise public vars - agents can access these.
         self.color = color
         self.speed = speed  # Speed is measured in pixels per second!
+        self.label = label
 
         # Add ourselves to the Simulation.
         self._sim_engine._objects.append(self)
@@ -134,6 +137,9 @@ class SimulationObject:
         else:
             # Else, just continue along our movement vector.
             self._move_vector(pixels_per_frame)
+    
+    def update_label(self, value):
+        self._label = value
 
     def draw(self):
         """Draw the SimulationObject to the simulation.
@@ -150,6 +156,15 @@ class SimulationObject:
         )
         line_end = np.add(line_end, self._pos)
         pg.draw.line(self._sim_engine.surface, Color.red, self._pos, line_end)
+
+        # Add the label at the centre of the circle
+        if  self.label is not None:
+            font = pg.font.SysFont("Arial", self._radius)  # Font size = agent radius
+            text_surface = font.render(str(self.label), True, (0, 0, 0))  # Black text
+            text_rect = text_surface.get_rect(center=self._pos)
+            self._sim_engine.surface.blit(text_surface, text_rect)
+
+        pg.draw
 
     def check_collision(self, other_object):
         """Check if we have collided with another SimulationObject.
