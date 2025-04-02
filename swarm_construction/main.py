@@ -22,10 +22,9 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        # Agents will take up 0.1 of the area of the screen.
-        agent_area_proportion = 0.1
-        window_area = window_size * window_size
-        total_agent_area = window_area * agent_area_proportion
+        # Make area of agents same as the shape area.
+        window_area = window_size**2
+        total_agent_area = window_area * self.shape_area_proportion
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -177,10 +176,9 @@ class SwarmConstructionSimulation:
         )
 
     def place_shape(self, shape_file):
-        # shape area is set to the same as the area of robots currently
-        shape_area_proportion = 0.1
+
         window_area = self.sim.window_size**2
-        goal_shape_area = window_area * shape_area_proportion
+        goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
         shape = Image.open(shape_file)
@@ -228,8 +226,10 @@ class SwarmConstructionSimulation:
         # origin of the seed agents
         self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
+        # The size of the shape as a proportion of the total area of the screen.
+        self.shape_area_proportion = 0.1
+
         self.place_shape("test_shape2.bmp")
-        # Place the agents (robots!) in the simulation.
         self.place_agents(1000)
 
         # TESTING: make the last one move.
