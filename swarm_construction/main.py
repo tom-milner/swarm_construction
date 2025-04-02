@@ -58,13 +58,18 @@ class SwarmConstructionSimulation:
         # Place the seeds relative to the origin.
         seed_pos = np.add(origin, seed_deltas)
 
+        # Localise the seeds by giving them an initial swarm_pos.
+        # This uses a normal x-y coordinate system (0,0 = bottom left), so
+        # so we flip our pygame coordinates.
+        swarm_pos = [delta * [1, -1] for delta in seed_deltas]
+
         # Add the seeds to the simulation.
         self.agents.extend(
             [
-                Agent(self.sim, seed_pos[0], swarm_pos=seed_deltas[0]),
-                Agent(self.sim, seed_pos[1], swarm_pos=seed_deltas[1]),
-                Agent(self.sim, seed_pos[2], swarm_pos=seed_deltas[2]),
-                Agent(self.sim, seed_pos[3], swarm_pos=seed_deltas[3]),
+                Agent(self.sim, seed_pos[0], swarm_pos=swarm_pos[0]),
+                Agent(self.sim, seed_pos[1], swarm_pos=swarm_pos[1]),
+                Agent(self.sim, seed_pos[2], swarm_pos=swarm_pos[2]),
+                Agent(self.sim, seed_pos[3], swarm_pos=swarm_pos[3]),
             ]
         )
 
