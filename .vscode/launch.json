@@ -4,8 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
-
     {
       "name": "Simulation",
       "type": "debugpy",
@@ -37,7 +35,7 @@
       "module": "tests.edge_following"
     },
     {
-      "name": "separate Agent Test",
+      "name": "Simple Agent Test",
       "type": "debugpy",
       "request": "launch",
       "module": "tests.simple_agent_rules"
@@ -53,6 +51,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "swarm_construction.shape.shape_create_gui"
+    },
+    {
+      "name": "Localisation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "tests.localisation"
     }
   ]
 }

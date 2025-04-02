@@ -10,7 +10,7 @@ import numpy as np
 class SimulationEngine:
     """The main simulation engine. This handles the pygame instance that draws everything to the screen"""
 
-    def __init__(self, title, window_size):
+    def __init__(self, title, window_size, fps=60):
         """Initialise the Simulation Engine.
 
         Args:
@@ -38,7 +38,7 @@ class SimulationEngine:
         self._objects = []
 
         # How many frames to display per second.
-        self.fps = 60
+        self.fps = fps
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
