@@ -61,10 +61,10 @@ class SwarmConstructionSimulation:
         # Add the seeds to the simulation.
         self.agents.extend(
             [
-                Agent(self.sim, seed_pos[0], swarm_pos=[-1, 0]),
-                Agent(self.sim, seed_pos[1], swarm_pos=[1, 0]),
-                Agent(self.sim, seed_pos[2], swarm_pos=[0, 1]),
-                Agent(self.sim, seed_pos[3], swarm_pos=[0, -1]),
+                Agent(self.sim, seed_pos[0], swarm_pos=seed_deltas[0]),
+                Agent(self.sim, seed_pos[1], swarm_pos=seed_deltas[1]),
+                Agent(self.sim, seed_pos[2], swarm_pos=seed_deltas[2]),
+                Agent(self.sim, seed_pos[3], swarm_pos=seed_deltas[3]),
             ]
         )
 
@@ -212,7 +212,7 @@ class SwarmConstructionSimulation:
 
         self.place_shape("test_shape.bmp")
         # Place the agents (robots!) in the simulation.
-        self.place_agents(100)
+        self.place_agents(1000)
 
         # TESTING: make the last one move.
         self.agents[-1].speed = 100
