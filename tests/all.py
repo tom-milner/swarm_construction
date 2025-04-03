@@ -1,5 +1,5 @@
 import swarm_construction.simulator.tests.all
-from . import simple_agent_rules, localisation
+from . import simple_agent_rules, localisation, shape_awareness
 
 
 tests = [
@@ -8,6 +8,7 @@ tests = [
     # Run the agent tests.
     simple_agent_rules,
     localisation,
+    shape_awareness,
 ]
 
 [t.Test().run() for t in tests]

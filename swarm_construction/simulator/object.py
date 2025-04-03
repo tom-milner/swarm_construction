@@ -239,7 +239,7 @@ class SimulationObject:
             n (int): Number of neighbours to return.
 
         Returns:
-            list: A list of length n with the nearest SimulationObjects in the simulation, along with their distances.
+            list: A list length<=n with the nearest SimulationObjects in the simulation, along with their distances.
         """
 
         # Naive implementation - replace with Spatial Hashing.
@@ -254,7 +254,7 @@ class SimulationObject:
                 continue
 
             # Work out the distance from the current object.
-            diff = np.subtract(obj._pos, self._pos)
+            diff = np.subtract(self._pos, obj._pos)
             dist = np.linalg.norm(diff)
 
             # Store object and distance in neighbours array.

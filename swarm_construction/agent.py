@@ -14,7 +14,20 @@ class Agent(SimulationObject):
     color: Color = Color.white
     speed: int = 0
 
-    def __init__(self, sim_engine: SimulationEngine, start_pos, swarm_pos=None):
+    class Shape:
+        """This is the agents internal shape representation, used in shape assembly"""
+
+        def __init__(self, shape, bottom_left):
+            self.shape_data = shape
+            self.bottom_left = bottom_left
+
+    def __init__(
+        self,
+        sim_engine: SimulationEngine,
+        start_pos,
+        swarm_pos=None,
+        shape: Shape = None,
+    ):
         """Initialise the agent.
         Purposefully keeping the input params minimal, so that all instances of this agent class are similar - trying to keep it faithful to the paper!
 
@@ -43,13 +56,14 @@ class Agent(SimulationObject):
 
         # Initialise agent-specific variables.
         self.swarm_pos = swarm_pos
+        self.shape = shape
 
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
         Works by orbiting an agent until it collides with another, upon which it orbits the collision agent.
 
         Args:
-            neighbours (list(tuple)): The nearby agents to follow the edges of, and their distances, sorted by proximity. (This can be provided by SimulationObject.get_nearest_neighbours)
+            neighbours (list(tuple)): List of tuples of neighbours and their distances (neighbour, distance) sorted by distance.
         """
 
         if self.seed_robot:
@@ -72,10 +86,10 @@ class Agent(SimulationObject):
         """Localise ourselves using the surrounding agents. Sets swarm_pos to be our calculated location.
 
         Args:
-            neighbours (list(tuple)): List of tuples (neighbouring agent, distance).
+            neighbours (list(tuple)): List of tuples of nearest neighbours (neighbouring agent, distance).
         """
 
-        # Don't allow seed robots to localise.
+        # Don't allow seed robots to relocalise.
         if self.seed_robot:
             return
 
@@ -93,7 +107,7 @@ class Agent(SimulationObject):
             return
 
         # Set a starting swarm_pos if necessary.
-        pos = [0, 0] if self.swarm_pos is None else self.swarm_pos
+        pos = [-self.radius, -self.radius] if self.swarm_pos is None else self.swarm_pos
 
         # NOTE: This localisation algorithm is a bit rubbish. It's based off the paper, and was designed to manage
         # the constraints they were facing with small, low-power, low-compute robots, and asynchronous comms.
@@ -102,10 +116,9 @@ class Agent(SimulationObject):
         # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
         # Perform the "distributed trilateration" algorithm.
-        num_minimisations = 1000
+        num_minimisations = 10
         for i in range(num_minimisations):
             for n in neighbours:
-
                 agent = n[0]
                 measured_dist = n[1]
 
@@ -128,12 +141,59 @@ class Agent(SimulationObject):
                 # For our simulation, this just slows down the minimisation, so we're not doing it.
 
                 # move towards new position
-                pos_diff = np.subtract(pos, new_pos)
                 # pos_diff = np.subtract(pos, new_pos) / 4
+                pos_diff = np.subtract(pos, new_pos)
                 pos = np.subtract(pos, pos_diff)
 
         # save calculated position
         self.swarm_pos = pos
+        # print(self.swarm_pos)
+        pass
+
+    def is_inside_shape(self) -> bool:
+        """Check if our localised position (swarm_pos) is inside the shape (target_shape)
+
+        Returns:
+            bool: Whether we're in the shape (True) or not (False).
+        """
+        if self.shape is None:
+            return
+
+        # Default color if we're not inside the shape
+        self.color = Color.white
+
+        # Can only see if we're inside the shape if we're localised.
+        if self.swarm_pos is None:
+            return False
+
+        # Map the localised swarm position to the shape, using the bottom left pixel in the shape.
+        # They both use origin (x,y) = (0,0) = bottom left (for now...)
+        size = self.shape.shape_data.size
+        mapped = np.add(self.swarm_pos, self.shape.bottom_left).round()
+        # print(mapped) # Saved my life during debugging so leaving in as a reminder of what went down here.
+
+        # If we're not in the shapes bounding box, return early.
+        if not (0 < mapped[0] < size[0] - 1) or not (0 < mapped[1] < size[1] - 1):
+            return False
+
+        # Yellow means we're in the bounding box!
+        self.color = Color.yellow
+
+        # Get the raw pixels from the shape, and get the color of the pixel at our mapped position.
+        pixels = self.shape.shape_data.getdata()
+
+        # Calculate 1D index from 2D mapped position.
+        # Pixel origin (0,0) is top left damnit! Flip our mapped position y-axis to deal with this.
+        rows = int(size[0] * (size[1] - mapped[1]))
+        image_idx = int(rows + mapped[0])
+
+        if pixels[image_idx] != 255:
+            # We are not in the shape :(
+            return False
+
+        # Woohoo! We're in the shape! Turn orange to celebrate.
+        self.color = Color.orange
+        return True
 
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
@@ -152,7 +212,8 @@ class Agent(SimulationObject):
 
         # Get 3 closest neighbours.
         neighbours = self.get_nearest_neighbours(3)
-
         # ====== AGENT RULES ======
         self.follow_edges(neighbours)
         self.localise(neighbours)
+
+        self.is_inside_shape()

@@ -3,7 +3,8 @@ from swarm_construction.simulator.engine import SimulationEngine
 from PIL import Image
 
 
-class TargetShape:
+class SimulationShape:
+    """Draw a shape to the simulation screen."""
 
     def __init__(self, origin_pos, shape, sim_engine: SimulationEngine):
 
