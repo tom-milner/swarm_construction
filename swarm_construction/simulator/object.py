@@ -47,6 +47,7 @@ class SimulationObject:
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
+        self._commsradius = radius * 6
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
@@ -244,17 +245,15 @@ class SimulationObject:
         # The _move_orbit function does everything else!
         self._move_orbit(0)
 
-    def get_nearest_neighbours(self, n: int):
+    def get_nearest_neighbours(self):
         """Get a sorted list of the SimulationObjects nearest to this object in the Simulation, along with their distances.
 
         Todo:
             This is inefficient - switch to use Spatial Hashing if things start running slowly!
 
-        Args:
-            n (int): Number of neighbours to return.
-
         Returns:
-            list: A list length<=n with the nearest SimulationObjects in the simulation, along with their distances.
+            list: A list with the nearest SimulationObjects in the simulation, along with their distances.
+            Contains all Agents within comms distance (3 agent diameters)
         """
 
         # Naive implementation - replace with Spatial Hashing.
@@ -272,13 +271,15 @@ class SimulationObject:
             diff = np.subtract(self._pos, obj._pos)
             dist = np.linalg.norm(diff)
 
-            # Store object and distance in neighbours array.
-            entry = [obj, dist]
-            neighbours.append(entry)
+            # only neighbours within comms distance
+            if dist <= self._commsradius:
+                # Store object and distance in neighbours array.
+                entry = [obj, dist]
+                neighbours.append(entry)
 
         # Turn neighbours into numpy array, and sort based on distance.
         neighbours = np.array(neighbours)
-        return neighbours[neighbours[:, 1].argsort()][0:n]
+        return neighbours[neighbours[:, 1].argsort()]
 
     def is_orbiting(self):
         """Return whether we're currently orbiting an object or not.

@@ -243,7 +243,7 @@ class Agent(SimulationObject):
         if self.speed == 0:
             if self.gradient is None:
                 # we are at start of sim, need to initalise gradients
-                neighbours = self.get_nearest_neighbours(3)
+                neighbours = self.get_nearest_neighbours()
                 self.update_gradient(neighbours)
             return
 
@@ -251,7 +251,7 @@ class Agent(SimulationObject):
         super().update(fps)
         
         # Get 3 closest neighbours.
-        neighbours = self.get_nearest_neighbours(3)
+        neighbours = self.get_nearest_neighbours()
         # ====== AGENT RULES ======
         # Rule 1: Edge Following.
         self.follow_edges(neighbours)
