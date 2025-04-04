@@ -56,7 +56,7 @@ class Test:
             # Slow speed, just for the test.
             # If the agent is quick, it's swarm_pos may jump over the y-axis within a single frame,
             # and the zero crossing will miss it.
-            self.agent.speed = 50
+            self.agent.speed = 100
 
         # wait for the agent to start localising.
         if self.agent.swarm_pos is None:
@@ -67,25 +67,25 @@ class Test:
         if -threshold < self.agent.swarm_pos[1] < threshold:
             self.agent.speed = 0
             print(
-                f"stopped @ {self.agent.swarm_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400])}"
+                f"stopped @ {self.agent.swarm_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400]) * [1,-1]}"
             )
+
+            self.agent = None
+            self.num_moving_agents -= 1
             if self.num_moving_agents == 0:
                 # stop sim
                 self.sim.running = False
                 return
 
-            self.agent = None
-            self.num_moving_agents -= 1
-
         else:
             print(
-                f"moving @ {self.agent.swarm_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400])}"
+                f"moving @ {self.agent.swarm_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400])* [1,-1]}"
             )
 
     def run(self):
 
         # Setup the simulation
-        self.sim = SimulationEngine("Localisation Test", 800, fps=30)
+        self.sim = SimulationEngine("Localisation Test", 800)
         middle = self.sim.window_size / 2
 
         # Setup seed agents.
@@ -107,11 +107,6 @@ class Test:
 
         # Run the simulation.
         self.sim.run()
-
-        # NOTE: The third agent to be generated won't stop in the right place, because it's neighbours are colinear!
-        # This is how it's implemented in the paper. They just say that they only localise using "non-colinear"
-        # neighbours.
-        # cop-out imo.
 
 
 if __name__ == "__main__":

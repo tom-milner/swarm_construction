@@ -1,7 +1,7 @@
 from .simulator.engine import SimulationEngine
 from .simulator.colors import Color
 from .agent import Agent
-from .simulator.shape import TargetShape
+from .simulator.shape import SimulationShape
 
 import math
 import numpy as np
@@ -11,7 +11,7 @@ from PIL import Image
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
 
-    def calculate_column_spacing(self, window_size, num_agents):
+    def calculate_agent_radius(self, window_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
 
         Args:
@@ -49,6 +49,7 @@ class SwarmConstructionSimulation:
             [
                 [-dx, 0],
                 [dx, 0],
+                # [-dx * 2, dy],
                 [0, -dy],
                 [0, dy],
             ]
@@ -63,14 +64,15 @@ class SwarmConstructionSimulation:
         swarm_pos = [delta * [1, -1] for delta in seed_deltas]
 
         # Add the seeds to the simulation.
-        self.agents.extend(
-            [
-                Agent(self.sim, seed_pos[0], swarm_pos=swarm_pos[0]),
-                Agent(self.sim, seed_pos[1], swarm_pos=swarm_pos[1]),
-                Agent(self.sim, seed_pos[2], swarm_pos=swarm_pos[2]),
-                Agent(self.sim, seed_pos[3], swarm_pos=swarm_pos[3]),
-            ]
-        )
+        for i in range(len(seed_deltas)):
+            self.agents.append(
+                Agent(
+                    self.sim,
+                    seed_pos[i],
+                    swarm_pos=swarm_pos[i],
+                    shape=self.target_shape,
+                )
+            )
 
         # Return the positions of the seeds.
         return seed_pos
@@ -97,7 +99,16 @@ class SwarmConstructionSimulation:
         conn_pos = np.add(conn_deltas, origin_agent)
 
         # Generate the connecting agents and add them to the simulation.
-        self.agents.extend([Agent(self.sim, pos) for pos in conn_pos])
+        self.agents.extend(
+            [
+                Agent(
+                    self.sim,
+                    pos,
+                    shape=self.target_shape,
+                )
+                for pos in conn_pos
+            ]
+        )
 
         # Return the positions of the connecting agents.
         return conn_pos
@@ -139,7 +150,13 @@ class SwarmConstructionSimulation:
                 pos = np.add(pos, cluster_start)
 
                 # Generate the agent.
-                self.agents.append(Agent(self.sim, pos))
+                self.agents.append(
+                    Agent(
+                        self.sim,
+                        pos,
+                        shape=self.target_shape,
+                    )
+                )
                 num_agents -= 1
 
     def place_agents(self, num_agents):
@@ -149,7 +166,7 @@ class SwarmConstructionSimulation:
             num_agents (int): Number of agents to generate and place.
         """
         # Calculate how big we can make the agents given our current window size.
-        Agent.radius = self.calculate_column_spacing(self.sim.window_size, num_agents)
+        Agent.radius = self.calculate_agent_radius(self.sim.window_size, num_agents)
 
         # Because our agents are circular, we can make them fit snuggly together if we
         # slot each row of agents into the gaps between agents in the previous row.
@@ -205,31 +222,40 @@ class SwarmConstructionSimulation:
         # confusingly when dealing with the image through pillow pixels are identified as [x,y]
         # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
         max_y_px = white_px_index[white_px_index[:, 0] == np.max(white_px_index[:, 0])]
+
+        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
+        # in format [y,x] (silly), with origin (0,0) top left.
         origin_px = max_y_px[np.argmin(max_y_px[:, 1])]
 
-        # shape_origin is the location for the top left pixel in the image - of any colour
-        # self.seed_origin is the centre of the seeds in format [x,y] (with 0,0 in top left corner)
-        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
-        # in format [y,x] (silly)
-        shape_origin = [
+        # draw_origin is the location for the top left pixel in the image - of any colour
+        # self.seed_origin is the centre of the seeds in format [x,y] (with origin0,0 in top left corner)
+        draw_origin = [
             self.seed_origin[0] - origin_px[1],
             self.seed_origin[1] - origin_px[0],
         ]
 
-        # Instantiates TargetShape class with shape data
-        self.target_shape = TargetShape(shape_origin, scaled_shape, self.sim)
+        # Instantiates SimulationShape class with shape data
+        SimulationShape(draw_origin, scaled_shape, self.sim)
+
+        # Create coordinates of bottom left pixel using origin [x,y]=[0,0]=bottom left
+        bottom_left = [origin_px[1], shape_array.shape[0] - origin_px[0]]
+
+        # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
+        # agent access to the scaled_shape and the coordinates of the bottom left pixel.
+        self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
     def main(self):
-        self.sim = SimulationEngine("Swarm Construction", 800)
+        self.sim = SimulationEngine("Swarm Construction", 800, fps=30)
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("test_shape2.bmp")
+        self.place_shape("sheep.bmp")
+
         self.place_agents(100)
 
         # TESTING: make the last one move.

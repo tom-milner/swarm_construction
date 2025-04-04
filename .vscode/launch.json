@@ -57,6 +57,12 @@
       "type": "debugpy",
       "request": "launch",
       "module": "tests.localisation"
+    },
+    {
+      "name": "Shape Awareness",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "tests.shape_awareness"
     }
   ]
 }
