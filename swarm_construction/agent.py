@@ -40,10 +40,14 @@ class Agent(SimulationObject):
         # If we've provided this agent with a position in the swarm, it is a seed robot.
         self.seed_robot = False
         if swarm_pos is not None:
-            # Seed robots are stationary and green.
+            # Seed robots are stationary and green and have gradient of 0.
             self.speed = 0
             self.color = Color.light_green
+            self.gradient = 0
             self.seed_robot = True
+        else:
+            # we dont know what the gradient is yet.
+            self.gradient = None
 
         # Initialise the underlying simulation object.
         super().__init__(
@@ -52,6 +56,7 @@ class Agent(SimulationObject):
             speed=self.speed,
             radius=self.radius,
             color=self.color,
+            label=self.gradient
         )
 
         # Initialise agent-specific variables.
@@ -195,6 +200,38 @@ class Agent(SimulationObject):
         self.color = Color.orange
         return True
 
+    def update_gradient(self, neighbours):
+        """updates the gradient of the agent
+        Works by finding lowest gradient of neighbours and adds 1
+        Args:
+            neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
+        """
+        # make sure we are only getting the closest ones
+        neighbours = [n for n in neighbours if n[1] <= Agent.radius*2]
+
+        # now lets get the gradients
+        gradients = [neighbour[0].gradient for neighbour in neighbours]
+        
+        valid_gradients = []
+        # itterate thro and get all valid gradients
+        for i in gradients:
+            # make sure they have a set gradient
+            if i is None:
+                continue
+            valid_gradients.append(i)
+
+        # check we have not got an empty list
+        if valid_gradients:
+            lowest_gradient = int(np.array(valid_gradients).min())
+            if self.gradient is None:
+                # set to lowest + 1
+                self.gradient = lowest_gradient + 1
+            elif(self.gradient > lowest_gradient + 1):
+                self.gradient = lowest_gradient + 1
+            
+            # update the label on object
+            self.label = self.gradient
+        
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
 
@@ -202,18 +239,23 @@ class Agent(SimulationObject):
             fps (float): FPS of the last frame (provided by pygame).
         """
 
-        # If we're stationary, do nothing.
         # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
         if self.speed == 0:
+            if self.gradient is None:
+                # we are at start of sim, need to initalise gradients
+                neighbours = self.get_nearest_neighbours(3)
+                self.update_gradient(neighbours)
             return
 
         # Update the underlying SimulationObject.
         super().update(fps)
-
+        
         # Get 3 closest neighbours.
         neighbours = self.get_nearest_neighbours(3)
         # ====== AGENT RULES ======
+        # Rule 1: Edge Following.
         self.follow_edges(neighbours)
         self.localise(neighbours)
-
+        self.update_gradient(neighbours)
         self.is_inside_shape()
+
