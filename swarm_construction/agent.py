@@ -25,7 +25,7 @@ class Agent(SimulationObject):
         self,
         sim_engine: SimulationEngine,
         start_pos,
-        swarm_pos=None,
+        local_pos=None,
         shape: Shape = None,
     ):
         """Initialise the agent.
@@ -34,12 +34,12 @@ class Agent(SimulationObject):
         Args:
             sim_engine (SimulationEngine): _description_
             start_pos ([int,int]): The starting position of the agent in the simulation.
-            swarm_pos ([int,int], optional): The position of the agent in the swarm. This is used to provide seed agents with their initial positions. Defaults to None.
+            local_pos ([int,int], optional): The position of the agent in the swarm. This is used to provide seed agents with their initial positions. Defaults to None.
         """
 
         # If we've provided this agent with a position in the swarm, it is a seed robot.
         self.seed_robot = False
-        if swarm_pos is not None:
+        if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
             self.speed = 0
             self.color = Color.light_green
@@ -56,11 +56,11 @@ class Agent(SimulationObject):
             speed=self.speed,
             radius=self.radius,
             color=self.color,
-            label=self.gradient
+            label=self.gradient,
         )
 
         # Initialise agent-specific variables.
-        self.swarm_pos = swarm_pos
+        self.local_pos = local_pos
         self.shape = shape
 
     def follow_edges(self, neighbours):
@@ -77,6 +77,9 @@ class Agent(SimulationObject):
         if self.speed == 0:
             return
 
+        if len(neighbours) == 0:
+            return
+
         # Check if we've collided with our nearest neighbour.
         closest = neighbours[0]
         collision = self.check_collision(closest[0])
@@ -88,7 +91,7 @@ class Agent(SimulationObject):
         self.set_orbit_object(closest[0])
 
     def localise(self, neighbours):
-        """Localise ourselves using the surrounding agents. Sets swarm_pos to be our calculated location.
+        """Localise ourselves using the surrounding agents. Sets local_pos to be our calculated location.
 
         Args:
             neighbours (list(tuple)): List of tuples of nearest neighbours (neighbouring agent, distance).
@@ -103,16 +106,16 @@ class Agent(SimulationObject):
         if self.speed == 0:
             return
 
-        # If our neighbours aren't localised, we can't localise ourselves.
-        neighbours_are_localised = np.all(
-            [n[0].swarm_pos is not None for n in neighbours]
-        )
-        if not neighbours_are_localised:
-            self.swarm_pos = None
+        # Get the neighbours that are already localised.
+        localised_neighbours = [n for n in neighbours if n[0].local_pos is not None]
+
+        # If we have < 3 localised neighbours, we can't localise ourselves
+        if len(localised_neighbours) < 3:
+            self.local_pos = None
             return
 
-        # Set a starting swarm_pos if necessary.
-        pos = [-self.radius, -self.radius] if self.swarm_pos is None else self.swarm_pos
+        # Set a starting local_pos if necessary.
+        pos = [-self.radius, -self.radius] if self.local_pos is None else self.local_pos
 
         # NOTE: This localisation algorithm is a bit rubbish. It's based off the paper, and was designed to manage
         # the constraints they were facing with small, low-power, low-compute robots, and asynchronous comms.
@@ -123,14 +126,14 @@ class Agent(SimulationObject):
         # Perform the "distributed trilateration" algorithm.
         num_minimisations = 10
         for i in range(num_minimisations):
-            for n in neighbours:
+            for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
 
-                # vector from neighbour swarm_pos to ourselves.
-                neighbour_vec = np.subtract(pos, agent.swarm_pos)
+                # vector from neighbour local_pos to ourselves.
+                neighbour_vec = np.subtract(pos, agent.local_pos)
 
-                # the distance between our swarm_pos and the neighbours swarm_pos.
+                # the distance between our local_pos and the neighbours local_pos.
                 calculated_dist = np.linalg.norm(neighbour_vec)
 
                 # unit vector pointing from neighbour to ourselves.
@@ -140,7 +143,7 @@ class Agent(SimulationObject):
                 actual_vec = v * measured_dist
 
                 # compute new position of where we should be, based on the measured distance.
-                new_pos = np.add(agent.swarm_pos, actual_vec)
+                new_pos = np.add(agent.local_pos, actual_vec)
 
                 # In the paper, they only move 1/4 of the way to the new position.
                 # For our simulation, this just slows down the minimisation, so we're not doing it.
@@ -151,12 +154,12 @@ class Agent(SimulationObject):
                 pos = np.subtract(pos, pos_diff)
 
         # save calculated position
-        self.swarm_pos = pos
-        # print(self.swarm_pos)
+        self.local_pos = pos
+        # print(self.local_pos)
         pass
 
     def is_inside_shape(self) -> bool:
-        """Check if our localised position (swarm_pos) is inside the shape (target_shape)
+        """Check if our localised position (local_pos) is inside the shape (target_shape)
 
         Returns:
             bool: Whether we're in the shape (True) or not (False).
@@ -168,13 +171,13 @@ class Agent(SimulationObject):
         self.color = Color.white
 
         # Can only see if we're inside the shape if we're localised.
-        if self.swarm_pos is None:
+        if self.local_pos is None:
             return False
 
         # Map the localised swarm position to the shape, using the bottom left pixel in the shape.
         # They both use origin (x,y) = (0,0) = bottom left (for now...)
         size = self.shape.shape_data.size
-        mapped = np.add(self.swarm_pos, self.shape.bottom_left).round()
+        mapped = np.add(self.local_pos, self.shape.bottom_left).round()
         # print(mapped) # Saved my life during debugging so leaving in as a reminder of what went down here.
 
         # If we're not in the shapes bounding box, return early.
@@ -207,11 +210,11 @@ class Agent(SimulationObject):
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
         # make sure we are only getting the closest ones
-        neighbours = [n for n in neighbours if n[1] <= Agent.radius*2]
+        neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2]
 
         # now lets get the gradients
         gradients = [neighbour[0].gradient for neighbour in neighbours]
-        
+
         valid_gradients = []
         # itterate thro and get all valid gradients
         for i in gradients:
@@ -226,12 +229,12 @@ class Agent(SimulationObject):
             if self.gradient is None:
                 # set to lowest + 1
                 self.gradient = lowest_gradient + 1
-            elif(self.gradient > lowest_gradient + 1):
+            elif self.gradient > lowest_gradient + 1:
                 self.gradient = lowest_gradient + 1
-            
+
             # update the label on object
             self.label = self.gradient
-        
+
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
 
@@ -249,13 +252,13 @@ class Agent(SimulationObject):
 
         # Update the underlying SimulationObject.
         super().update(fps)
-        
-        # Get 3 closest neighbours.
+
+        # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
+
         # ====== AGENT RULES ======
         # Rule 1: Edge Following.
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
         self.is_inside_shape()
-

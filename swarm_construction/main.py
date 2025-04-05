@@ -58,10 +58,10 @@ class SwarmConstructionSimulation:
         # Place the seeds relative to the origin.
         seed_pos = np.add(origin, seed_deltas)
 
-        # Localise the seeds by giving them an initial swarm_pos.
+        # Localise the seeds by giving them an initial local_pos.
         # This uses a normal x-y coordinate system (0,0 = bottom left), so
         # so we flip our pygame coordinates.
-        swarm_pos = [delta * [1, -1] for delta in seed_deltas]
+        local_pos = [delta * [1, -1] for delta in seed_deltas]
 
         # Add the seeds to the simulation.
         for i in range(len(seed_deltas)):
@@ -69,7 +69,7 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     seed_pos[i],
-                    swarm_pos=swarm_pos[i],
+                    local_pos=local_pos[i],
                     shape=self.target_shape,
                 )
             )
@@ -260,10 +260,9 @@ class SwarmConstructionSimulation:
 
         # TESTING: make the last one move.
         self.agents[-1].speed = 100
-        [self.sim.add_update(agent.update) for agent in self.agents]
-        [self.sim.add_draw(agent.draw) for agent in self.agents]
 
         self.sim.run()
+
 
 if __name__ == "__main__":
     swarm_sim = SwarmConstructionSimulation()
