@@ -56,7 +56,7 @@ class Agent(SimulationObject):
             speed=self.speed,
             radius=self.radius,
             color=self.color,
-            label=self.gradient
+            label=self.gradient,
         )
 
         # Initialise agent-specific variables.
@@ -75,6 +75,9 @@ class Agent(SimulationObject):
             return
 
         if self.speed == 0:
+            return
+
+        if len(neighbours) == 0:
             return
 
         # Check if we've collided with our nearest neighbour.
@@ -103,11 +106,11 @@ class Agent(SimulationObject):
         if self.speed == 0:
             return
 
-        # If our neighbours aren't localised, we can't localise ourselves.
-        neighbours_are_localised = np.all(
-            [n[0].swarm_pos is not None for n in neighbours]
-        )
-        if not neighbours_are_localised:
+        # Get the neighbours that are already localised.
+        localised_neighbours = [n for n in neighbours if n[0].swarm_pos is not None]
+
+        # If we have < 3 localised neighbours, we can't localise ourselves
+        if len(localised_neighbours) < 3:
             self.swarm_pos = None
             return
 
@@ -123,7 +126,7 @@ class Agent(SimulationObject):
         # Perform the "distributed trilateration" algorithm.
         num_minimisations = 10
         for i in range(num_minimisations):
-            for n in neighbours:
+            for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
 
@@ -207,11 +210,11 @@ class Agent(SimulationObject):
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
         # make sure we are only getting the closest ones
-        neighbours = [n for n in neighbours if n[1] <= Agent.radius*2]
+        neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2]
 
         # now lets get the gradients
         gradients = [neighbour[0].gradient for neighbour in neighbours]
-        
+
         valid_gradients = []
         # itterate thro and get all valid gradients
         for i in gradients:
@@ -226,12 +229,12 @@ class Agent(SimulationObject):
             if self.gradient is None:
                 # set to lowest + 1
                 self.gradient = lowest_gradient + 1
-            elif(self.gradient > lowest_gradient + 1):
+            elif self.gradient > lowest_gradient + 1:
                 self.gradient = lowest_gradient + 1
-            
+
             # update the label on object
             self.label = self.gradient
-        
+
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
 
@@ -249,7 +252,7 @@ class Agent(SimulationObject):
 
         # Update the underlying SimulationObject.
         super().update(fps)
-        
+
         # Get 3 closest neighbours.
         neighbours = self.get_nearest_neighbours()
         # ====== AGENT RULES ======
@@ -258,4 +261,3 @@ class Agent(SimulationObject):
         self.localise(neighbours)
         self.update_gradient(neighbours)
         self.is_inside_shape()
-

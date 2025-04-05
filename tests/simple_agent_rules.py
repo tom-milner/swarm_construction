@@ -44,15 +44,11 @@ class Test:
         middle = self.sim.window_size / 2
 
         # Add stationary agents.
-        agents = self._generate_cluster(middle, Agent.radius)
-        [self.sim.add_update(ag.update) for ag in agents]
-        [self.sim.add_draw(ag.draw) for ag in agents]
+        self._generate_cluster(middle, Agent.radius)
 
         # Add one moving agent.
         new_agent = Agent(self.sim, [middle, self.sim.window_size])
         new_agent.speed = 100
-        self.sim.add_update(new_agent.update)
-        self.sim.add_draw(new_agent.draw)
 
         # Run the simulation.
         self.sim.run()
