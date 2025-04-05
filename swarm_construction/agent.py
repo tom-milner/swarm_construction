@@ -253,8 +253,9 @@ class Agent(SimulationObject):
         # Update the underlying SimulationObject.
         super().update(fps)
 
-        # Get 3 closest neighbours.
+        # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
+
         # ====== AGENT RULES ======
         # Rule 1: Edge Following.
         self.follow_edges(neighbours)
