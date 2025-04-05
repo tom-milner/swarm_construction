@@ -57,17 +57,17 @@ class Test:
         # Place the seeds relative to the origin.
         seed_pos = np.add(origin, seed_deltas)
 
-        # Localise the seeds by giving them an initial swarm_pos.
+        # Localise the seeds by giving them an initial local_pos.
         # This uses a normal x-y coordinate system (0,0 = bottom left), so
         # so we flip our pygame coordinates.
-        swarm_pos = [delta * [1, -1] for delta in seed_deltas]
+        local_pos = [delta * [1, -1] for delta in seed_deltas]
 
         # Add the seeds to the simulation.
         for i in range(len(seed_deltas)):
             Agent(
                 self.sim,
                 seed_pos[i],
-                swarm_pos=swarm_pos[i],
+                local_pos=local_pos[i],
                 shape=self.target_shape,
             )
 
