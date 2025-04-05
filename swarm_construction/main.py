@@ -244,6 +244,14 @@ class SwarmConstructionSimulation:
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
+    def start_agents(self, fps):
+        self.last_agent_time += self.sim.clock.get_rawtime()
+        interval = 2
+        if (self.last_agent_time / 1000) > interval:
+            self.agents[self.agent_move_idx].speed = 100
+            self.last_agent_time = 0
+            self.agent_move_idx -= 1
+
     def main(self):
         self.sim = SimulationEngine("Swarm Construction", 800, fps=30)
         self.agents = []
@@ -254,12 +262,13 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("sheep.bmp")
-
+        self.place_shape("tower.bmp")
         self.place_agents(100)
 
-        # TESTING: make the last one move.
-        self.agents[-1].speed = 100
+        self.last_agent_time = self.sim.clock.get_time()
+        self.agent_move_idx = -1
+
+        self.sim.add_update(self.start_agents)
 
         self.sim.run()
 

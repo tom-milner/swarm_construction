@@ -223,6 +223,9 @@ class SimulationObject:
         if orbit_object == self._orbit_object:
             return
 
+        if orbit_object.speed != 0:
+            return
+
         self._orbit_object = orbit_object
 
         # If we're already touching the edge of the object, change our
@@ -283,10 +286,11 @@ class SimulationObject:
         neighbours = np.array(neighbours)
         return neighbours[neighbours[:, 1].argsort()]
 
-    def is_orbiting(self):
-        """Return whether we're currently orbiting an object or not.
+    def get_orbit_object(self):
+        """Return the object we're currently orbiting.
+
 
         Returns:
-            bool: Orbit status.
+            SimuationObjet: Orbit object.
         """
-        return bool(self._orbit_object)
+        return self._orbit_object

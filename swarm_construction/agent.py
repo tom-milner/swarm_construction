@@ -62,6 +62,7 @@ class Agent(SimulationObject):
         # Initialise agent-specific variables.
         self.local_pos = local_pos
         self.shape = shape
+        self.prev_inside_shape = False
 
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
@@ -124,7 +125,7 @@ class Agent(SimulationObject):
         # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
         # Perform the "distributed trilateration" algorithm.
-        num_minimisations = 10
+        num_minimisations = 800
         for i in range(num_minimisations):
             for n in localised_neighbours:
                 agent = n[0]
@@ -149,8 +150,8 @@ class Agent(SimulationObject):
                 # For our simulation, this just slows down the minimisation, so we're not doing it.
 
                 # move towards new position
-                # pos_diff = np.subtract(pos, new_pos) / 4
-                pos_diff = np.subtract(pos, new_pos)
+                pos_diff = np.subtract(pos, new_pos) / 4
+                # pos_diff = np.subtract(pos, new_pos)
                 pos = np.subtract(pos, pos_diff)
 
         # save calculated position
@@ -210,7 +211,7 @@ class Agent(SimulationObject):
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
         # make sure we are only getting the closest ones
-        neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2]
+        # neighbours = [n for n in neighbours if n[1] <= Agent.radius * 3]
 
         # now lets get the gradients
         gradients = [neighbour[0].gradient for neighbour in neighbours]
@@ -234,6 +235,32 @@ class Agent(SimulationObject):
 
             # update the label on object
             self.label = self.gradient
+
+    def assemble_shape(self):
+
+        # Can't assemble the shape if we're not localised.
+        if self.local_pos is None:
+            return
+
+        # Stopping Conditions.
+
+        # Condition 1: We are about to edge follow around a stationary robot that has a larger gradient value than our own.
+        orb_agent = self.get_orbit_object()
+        inside_shape = self.is_inside_shape()
+
+        if (
+            self.prev_inside_shape
+            and inside_shape
+            and orb_agent.speed == 0
+            and self.gradient <= orb_agent.gradient
+        ):
+            self.speed = 0
+
+        # Condition 2: We are about to exit the shape.
+        if not inside_shape and self.prev_inside_shape:
+            self.speed = 0
+
+        self.prev_inside_shape = inside_shape
 
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
@@ -261,4 +288,5 @@ class Agent(SimulationObject):
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
-        self.is_inside_shape()
+
+        self.assemble_shape()
