@@ -47,7 +47,7 @@ class SimulationObject:
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
-        self._commsradius = radius * 6
+        self._comms_radius = radius * 5.6569
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
@@ -223,9 +223,6 @@ class SimulationObject:
         if orbit_object == self._orbit_object:
             return
 
-        if orbit_object.speed != 0:
-            return
-
         self._orbit_object = orbit_object
 
         # If we're already touching the edge of the object, change our
@@ -274,7 +271,7 @@ class SimulationObject:
             dist = np.linalg.norm(diff)
 
             # only neighbours within comms distance
-            if dist <= self._commsradius:
+            if dist <= self._comms_radius:
                 # Store object and distance in neighbours array.
                 entry = [obj, dist]
                 neighbours.append(entry)

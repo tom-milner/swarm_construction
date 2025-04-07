@@ -7,18 +7,6 @@ import numpy as np
 
 class Test:
 
-    def update(self, fps):
-        if fps == 0:
-            return
-
-        # Move the agents
-        for a in self.agents:
-            a.update(fps)
-
-    def draw(self):
-        for a in self.agents:
-            a.draw()
-
     def __init__(self):
         self.agents = []
 
@@ -42,13 +30,6 @@ class Test:
             self.sim, radius=radius * 0.5, speed=150, color=Color.light_green
         )
         moon.set_orbit_object(planet)
-
-        self.agents.append(sun)
-        self.agents.append(planet)
-        self.agents.append(moon)
-
-        self.sim.add_update(self.update)
-        self.sim.add_draw(self.draw)
 
         # Run the simulation.
         self.sim.run()

@@ -211,7 +211,7 @@ class Agent(SimulationObject):
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
         # make sure we are only getting the closest ones
-        # neighbours = [n for n in neighbours if n[1] <= Agent.radius * 3]
+        neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2.1]
 
         # now lets get the gradients
         gradients = [neighbour[0].gradient for neighbour in neighbours]
@@ -226,6 +226,7 @@ class Agent(SimulationObject):
 
         # check we have not got an empty list
         if valid_gradients:
+            self.gradient = 1000
             lowest_gradient = int(np.array(valid_gradients).min())
             if self.gradient is None:
                 # set to lowest + 1
