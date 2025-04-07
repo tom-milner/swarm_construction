@@ -10,7 +10,7 @@ import numpy as np
 class SimulationEngine:
     """The main simulation engine. This handles the pygame instance that draws everything to the screen"""
 
-    def __init__(self, title, window_size, fps=60):
+    def __init__(self, title, window_size, draw_rate=60, update_rate=60):
         """Initialise the Simulation Engine.
 
         Args:
@@ -38,7 +38,10 @@ class SimulationEngine:
         self._objects = []
 
         # How many frames to display per second.
-        self.fps = fps
+        self._draw_rate = draw_rate
+
+        # How many times to update per second. Don't let this be less than the draw rate
+        self._update_rate = max(draw_rate, update_rate)
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
@@ -54,12 +57,20 @@ class SimulationEngine:
         Update and Draw are called once per frame.
         """
 
+        # The number of updates we should run before drawing a frame.
+        draw_frame_count = round(self._update_rate / self._draw_rate)
+        count = 0
+
         self.running = True
         while self.running:
-            # Limit the framerate to "self.fps".
-            self.clock.tick(self.fps)
+
+            self.clock.tick(self._update_rate)
             self.update()
-            self.draw()
+
+            count += 1
+            if count == draw_frame_count:
+                self.draw()
+                count = 0
 
         pg.quit()
 

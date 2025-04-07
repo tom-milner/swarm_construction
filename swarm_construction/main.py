@@ -246,14 +246,16 @@ class SwarmConstructionSimulation:
 
     def start_agents(self, fps):
         self.last_agent_time += self.sim.clock.get_rawtime()
-        interval = 2
+        interval = 1
         if (self.last_agent_time / 1000) > interval:
             self.agents[self.agent_move_idx].speed = 100
             self.last_agent_time = 0
             self.agent_move_idx -= 1
 
     def main(self):
-        self.sim = SimulationEngine("Swarm Construction", 800, fps=30)
+        self.sim = SimulationEngine(
+            "Swarm Construction", 800, draw_rate=10, update_rate=100
+        )
         self.agents = []
 
         # origin of the seed agents
