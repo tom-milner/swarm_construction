@@ -125,7 +125,7 @@ class Agent(SimulationObject):
         # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
         # Perform the "distributed trilateration" algorithm.
-        num_minimisations = 800
+        num_minimisations = 10
         for i in range(num_minimisations):
             for n in localised_neighbours:
                 agent = n[0]
@@ -150,8 +150,9 @@ class Agent(SimulationObject):
                 # For our simulation, this just slows down the minimisation, so we're not doing it.
 
                 # move towards new position
-                pos_diff = np.subtract(pos, new_pos) / 4
-                # pos_diff = np.subtract(pos, new_pos)
+                # pos_diff = np.subtract(pos, new_pos) / 4
+                pos_diff = np.subtract(pos, new_pos)
+
                 pos = np.subtract(pos, pos_diff)
 
         # save calculated position
@@ -247,6 +248,9 @@ class Agent(SimulationObject):
 
         # Condition 1: We are about to edge follow around a stationary robot that has a larger gradient value than our own.
         orb_agent = self.get_orbit_object()
+        if orb_agent is None:
+            return
+
         inside_shape = self.is_inside_shape()
 
         if (
