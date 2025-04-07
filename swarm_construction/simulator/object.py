@@ -223,9 +223,6 @@ class SimulationObject:
         if orbit_object == self._orbit_object:
             return
 
-        if orbit_object.speed != 0:
-            return
-
         self._orbit_object = orbit_object
 
         # If we're already touching the edge of the object, change our
