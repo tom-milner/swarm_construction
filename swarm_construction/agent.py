@@ -2,7 +2,7 @@ from .simulator.object import SimulationObject
 from .simulator.colors import Color
 from .simulator.engine import SimulationEngine
 import numpy as np
-
+import random
 
 class Agent(SimulationObject):
     """A simulation of a swarm agent (robot).
@@ -63,11 +63,40 @@ class Agent(SimulationObject):
         self.local_pos = local_pos
         self.shape = shape
         self.prev_inside_shape = False
+    def start_edge_following(self, fps):
+        """Start edge following by setting the orbit object to None.
+        This is called when we start edge following, so that we can orbit around the first agent we touch."""
+        if self.seed_robot:
+            # Don't allow seed robots to edge follow.
+            return
+        if self.local_pos is not None:
+            # If we're localised, we can't edge follow.
+            return
+        average_start_time = 1
+        p = 1 / (average_start_time * (fps + 1))
+        if random.random() > p:
+            # if we are unlucky, we dont edge follow
+            return
+        # get the nearest neighbours
+        neighbours = self.get_nearest_neighbours()
+        if len(neighbours) == 0:
+            return
+        # get gradients of neighbours
+        gradients = [neighbour[0].gradient for neighbour in neighbours]
+        speeds = [neighbour[0].speed for neighbour in neighbours]
+        if any(gradient is not None and gradient > self.gradient for gradient in gradients):
+            # there are nieghbours with a higher gradient than us
+            return
+        if any(speeds > 0 for speeds in speeds):
+            # there are nieghbours moving
+            print("not moving")
+            return
+        self.speed = 100
 
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
         Works by orbiting an agent until it collides with another, upon which it orbits the collision agent.
-
+        Requires the agent to be moving.
         Args:
             neighbours (list(tuple)): List of tuples of neighbours and their distances (neighbour, distance) sorted by distance.
         """
@@ -280,6 +309,9 @@ class Agent(SimulationObject):
                 # we are at start of sim, need to initalise gradients
                 neighbours = self.get_nearest_neighbours()
                 self.update_gradient(neighbours)
+                return
+            # We might need to start edge following. Better check.
+            self.start_edge_following(fps)
             return
 
         # Update the underlying SimulationObject.
@@ -289,7 +321,6 @@ class Agent(SimulationObject):
         neighbours = self.get_nearest_neighbours()
 
         # ====== AGENT RULES ======
-        # Rule 1: Edge Following.
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)

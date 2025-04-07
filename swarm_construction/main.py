@@ -244,13 +244,13 @@ class SwarmConstructionSimulation:
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
-    def start_agents(self, fps):
-        self.last_agent_time += self.sim.clock.get_rawtime()
-        interval = 1
-        if (self.last_agent_time / 1000) > interval:
-            self.agents[self.agent_move_idx].speed = 100
-            self.last_agent_time = 0
-            self.agent_move_idx -= 1
+    """    def start_agents(self, fps):
+            self.last_agent_time += self.sim.clock.get_rawtime()
+            interval = 1
+            if (self.last_agent_time / 1000) > interval:
+                self.agents[self.agent_move_idx].speed = 100
+                self.last_agent_time = 0
+                self.agent_move_idx -= 1"""
 
     def main(self):
         self.sim = SimulationEngine(
@@ -270,7 +270,7 @@ class SwarmConstructionSimulation:
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
 
-        self.sim.add_update(self.start_agents)
+        #self.sim.add_update(self.start_agents)
 
         self.sim.run()
 
