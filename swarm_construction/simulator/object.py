@@ -47,7 +47,7 @@ class SimulationObject:
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
-        self._commsradius = radius * 6
+        self._commsradius = radius * 5.6569
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
