@@ -47,7 +47,9 @@ class SimulationObject:
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
-        self._comms_radius = radius * 5.6569
+        self._comms_radius = (
+            radius * 6
+        )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
