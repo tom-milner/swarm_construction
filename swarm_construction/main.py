@@ -22,9 +22,9 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        # Make area of agents same as the shape area.
+        # Make area of agents ever so slightly more than the shape area.
         window_area = window_size**2
-        total_agent_area = window_area * self.shape_area_proportion
+        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -264,7 +264,7 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("tower.bmp")
+        self.place_shape("test_shape.bmp")
         self.place_agents(100)
 
         self.last_agent_time = self.sim.clock.get_time()

@@ -63,6 +63,7 @@ class Agent(SimulationObject):
         self.local_pos = local_pos
         self.shape = shape
         self.prev_inside_shape = False
+
     def start_edge_following(self, fps):
         """Start edge following by setting the orbit object to None.
         This is called when we start edge following, so that we can orbit around the first agent we touch."""
@@ -91,6 +92,30 @@ class Agent(SimulationObject):
             # there are nieghbours moving
             print("not moving")
             return
+        
+        equal_grad_neighbours = 0
+        max_grad_neighbour = neighbours[0]
+        for neighbour in neighbours:
+            # counts neighbours within touching distance with the same gradient as the agent
+            if (neighbour[1] <= Agent.radius * 2) and (neighbour[0].gradient == self.gradient):
+                equal_grad_neighbours += 1 
+            
+            # find the neighbour with the maximum gradient
+            if (neighbour[1] <= Agent.radius * 2) and (neighbour[0].gradient > max_grad_neighbour[0].gradient):
+                max_grad_neighbour = neighbour   
+        
+        # if we're touching 2 neighbours with equal gradient to ourselves
+        # it is likely that we will get trapped between them in a cycle 
+        # of collisions and changing orbit objects if we tried to start edge following
+        if equal_grad_neighbours > 1:
+            return
+        
+        # This stops the top right agent flying away - it never collided with other agents
+        # so never had an agent to orbit
+        # We manually assign the initial orbit object as the neighbour with the highest 
+        # gradient that is stationary 
+        if (max_grad_neighbour[0].speed == 0):
+            self.set_orbit_object(max_grad_neighbour[0])
         self.speed = 100
 
     def follow_edges(self, neighbours):
