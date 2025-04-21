@@ -12,7 +12,6 @@ class Agent(SimulationObject):
     """
 
     radius: int = 10
-    color: Color = Color.white
     speed: int = 0
 
     class Shape:
@@ -26,6 +25,7 @@ class Agent(SimulationObject):
         self,
         sim_engine: SimulationEngine,
         start_pos,
+        color = Color.white,
         local_pos=None,
         shape: Shape = None,
     ):
@@ -49,6 +49,14 @@ class Agent(SimulationObject):
         else:
             # we dont know what the gradient is yet.
             self.gradient = None
+            self.color = color
+            # this colour flag is set to the same value as the pixel in the bitmap shape
+            # allows for easy checking if we're in our part of the shape or not
+            # agents effectively only 'see' their section of the shape
+            if color == Color.grey:
+                self.color_flag = 127
+            elif color == Color.white:
+                self.color_flag = 255
 
         # Initialise the underlying simulation object.
         super().__init__(
@@ -234,7 +242,7 @@ class Agent(SimulationObject):
             return
 
         # Default color if we're not inside the shape
-        self.color = Color.white
+        #self.color = Color.white
 
         # Can only see if we're inside the shape if we're localised.
         if self.local_pos is None:
@@ -251,7 +259,7 @@ class Agent(SimulationObject):
             return False
 
         # Yellow means we're in the bounding box!
-        self.color = Color.yellow
+        #self.color = Color.yellow
 
         # Get the raw pixels from the shape, and get the color of the pixel at our mapped position.
         pixels = self.shape.shape_data.getdata()
@@ -261,12 +269,12 @@ class Agent(SimulationObject):
         rows = int(size[0] * (size[1] - mapped[1]))
         image_idx = int(rows + mapped[0])
 
-        if pixels[image_idx] != 255:
-            # We are not in the shape :(
+        if pixels[image_idx] != self.color_flag:
+            # We are not in our part of the shape :(
             return False
 
         # Woohoo! We're in the shape! Turn orange to celebrate.
-        self.color = Color.orange
+        #self.color = Color.orange
         return True
 
     def update_gradient(self, neighbours):

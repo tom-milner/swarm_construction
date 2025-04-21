@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 
 root = tk.Tk()
-root.title("Bitmap shape creation")
+root.title("Greyscale bitmap shape creation")
 
 # canvas size
 SHAPE_ROWS = 10
@@ -16,11 +16,15 @@ def toggle_pixel(event, row, col):
     # Get the clicked pixel
     pixel = event.widget
     # Toggle its state and background color
-    if shape_state[row][col] == 1:
+    # clicking rotates through colours 
+    if shape_state[row][col] == 255:
         shape_state[row][col] = 0
         pixel.config(bg="black")
+    elif shape_state[row][col] == 0:
+        shape_state[row][col] = 127
+        pixel.config(bg="grey")
     else:
-        shape_state[row][col] = 1
+        shape_state[row][col] = 255
         pixel.config(bg="white")
 
 
@@ -31,7 +35,7 @@ def save_bitmap(shape_state):
     crop_rows, crop_cols = shape_state.shape
 
     # Create a new image (1-bit mode)
-    shape = Image.new("", (crop_cols, crop_rows))
+    shape = Image.new("L", (crop_cols, crop_rows))
     # Populate the image with pixel data from grid_state
     for row in range(crop_rows):
         for col in range(crop_cols):

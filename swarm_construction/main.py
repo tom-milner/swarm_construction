@@ -6,6 +6,7 @@ from .simulator.shape import SimulationShape
 import math
 import numpy as np
 from PIL import Image
+import random
 
 
 class SwarmConstructionSimulation:
@@ -24,7 +25,8 @@ class SwarmConstructionSimulation:
 
         # Make area of agents ever so slightly more than the shape area.
         window_area = window_size**2
-        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
+        # made agent area bigger for quicker testing - lazy
+        total_agent_area = window_area * (self.shape_area_proportion + 0.1)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -104,6 +106,7 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
+                    color = Color.white,
                     shape=self.target_shape,
                 )
                 for pos in conn_pos
@@ -149,11 +152,17 @@ class SwarmConstructionSimulation:
                 pos = [x_offset + dx * 2 * j, dy * i]
                 pos = np.add(pos, cluster_start)
 
+                if (random.random() > 0.5):
+                    color = Color.white
+                else:
+                    color = Color.grey
+
                 # Generate the agent.
                 self.agents.append(
                     Agent(
                         self.sim,
                         pos,
+                        color,
                         shape=self.target_shape,
                     )
                 )
@@ -214,10 +223,10 @@ class SwarmConstructionSimulation:
         # converts image to numpy array
         shape_array = np.array(scaled_shape)
 
-        # finds the bottom left most white pixel in the scaled shape
+        # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
-        # this finds the indices of all white pixels
-        white_px_index = np.argwhere(shape_array == True)
+        # this finds the indices of all not black pixels
+        white_px_index = np.argwhere(shape_array != 0)
 
         # confusingly when dealing with the image through pillow pixels are identified as [x,y]
         # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
@@ -264,7 +273,7 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("test_shape.bmp")
+        self.place_shape("gs_test.bmp")
         self.place_agents(100)
 
         self.last_agent_time = self.sim.clock.get_time()
