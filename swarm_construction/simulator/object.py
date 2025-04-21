@@ -47,7 +47,9 @@ class SimulationObject:
         self._sim_engine = sim_engine
         self._pos = pos
         self._radius = radius
-        self._commsradius = radius * 6
+        self._comms_radius = (
+            radius * 6
+        )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
         self._orbit_direction = OrbitDirection.CLOCKWISE
@@ -271,7 +273,7 @@ class SimulationObject:
             dist = np.linalg.norm(diff)
 
             # only neighbours within comms distance
-            if dist <= self._commsradius:
+            if dist <= self._comms_radius:
                 # Store object and distance in neighbours array.
                 entry = [obj, dist]
                 neighbours.append(entry)
@@ -283,10 +285,11 @@ class SimulationObject:
         neighbours = np.array(neighbours)
         return neighbours[neighbours[:, 1].argsort()]
 
-    def is_orbiting(self):
-        """Return whether we're currently orbiting an object or not.
+    def get_orbit_object(self):
+        """Return the object we're currently orbiting.
+
 
         Returns:
-            bool: Orbit status.
+            SimuationObjet: Orbit object.
         """
-        return bool(self._orbit_object)
+        return self._orbit_object

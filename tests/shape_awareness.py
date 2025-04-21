@@ -151,7 +151,7 @@ class Test:
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
-    def main(self):
+    def run(self):
         self.sim = SimulationEngine("Shape Awareness", 800)
         self.agents = []
 

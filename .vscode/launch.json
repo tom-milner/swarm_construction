@@ -14,25 +14,25 @@
       "name": "Movement Test",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.movement_test"
+      "module": "swarm_construction.simulator.tests.movement_test"
     },
     {
       "name": "Collision Test",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.collision_detection"
+      "module": "swarm_construction.simulator.tests.collision_detection"
     },
     {
       "name": "Single Orbit Test",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.single_orbit"
+      "module": "swarm_construction.simulator.tests.single_orbit"
     },
     {
       "name": "Edge Following",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.edge_following"
+      "module": "swarm_construction.simulator.tests.edge_following"
     },
     {
       "name": "Simple Agent Test",
