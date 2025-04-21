@@ -2,6 +2,7 @@ from .simulator.object import SimulationObject
 from .simulator.colors import Color
 from .simulator.engine import SimulationEngine
 import numpy as np
+import random
 
 
 class Agent(SimulationObject):
@@ -64,10 +65,73 @@ class Agent(SimulationObject):
         self.shape = shape
         self.prev_inside_shape = False
 
+    def start_edge_following(self, fps):
+        """Start edge following by checking for a bunch of conditions
+
+        If the conditions are passed, the agent is set to orbit the neighbour it is
+        touching with the highest gradient.
+        Args:
+            fps (int): the sims current frame rate"""
+        if self.seed_robot:
+            # Don't allow seed robots to edge follow.
+            return
+        if self.local_pos is not None:
+            # If we're localised, we can't edge follow.
+            return
+        average_start_time = 1
+        p = 1 / (average_start_time * (fps + 1))
+        if random.random() > p:
+            # if we are unlucky, we dont edge follow
+            return
+        # get the nearest neighbours
+        neighbours = self.get_nearest_neighbours()
+        if len(neighbours) == 0:
+            return
+        # get gradients of neighbours
+        gradients = [neighbour[0].gradient for neighbour in neighbours]
+        speeds = [neighbour[0].speed for neighbour in neighbours]
+        if any(
+            gradient is not None and gradient > self.gradient for gradient in gradients
+        ):
+            # there are neighbours with a higher gradient than us
+            return
+        if any(speeds > 0 for speeds in speeds):
+            # there are neighbours moving
+            return
+
+        equal_grad_neighbours = 0
+        max_grad_neighbour = neighbours[0]
+        for neighbour in neighbours:
+            # counts neighbours within touching distance with the same gradient as the agent
+            if (neighbour[1] <= Agent.radius * 2) and (
+                neighbour[0].gradient == self.gradient
+            ):
+                equal_grad_neighbours += 1
+
+            # find the neighbour with the maximum gradient
+            if (neighbour[1] <= Agent.radius * 2) and (
+                neighbour[0].gradient > max_grad_neighbour[0].gradient
+            ):
+                max_grad_neighbour = neighbour
+
+        # if we're touching 2 neighbours with equal gradient to ourselves
+        # it is likely that we will get trapped between them in a cycle
+        # of collisions and changing orbit objects if we tried to start edge following
+        if equal_grad_neighbours > 1:
+            return
+
+        # This stops the top right agent flying away - it never collided with other agents
+        # so never had an agent to orbit
+        # We manually assign the initial orbit object as the neighbour with the highest
+        # gradient that is stationary
+        if max_grad_neighbour[0].speed == 0:
+            self.set_orbit_object(max_grad_neighbour[0])
+        self.speed = 100
+
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
         Works by orbiting an agent until it collides with another, upon which it orbits the collision agent.
-
+        Requires the agent to be moving.
         Args:
             neighbours (list(tuple)): List of tuples of neighbours and their distances (neighbour, distance) sorted by distance.
         """
@@ -280,6 +344,9 @@ class Agent(SimulationObject):
                 # we are at start of sim, need to initalise gradients
                 neighbours = self.get_nearest_neighbours()
                 self.update_gradient(neighbours)
+                return
+            # We might need to start edge following. Better check.
+            self.start_edge_following(fps)
             return
 
         # Update the underlying SimulationObject.
@@ -289,7 +356,6 @@ class Agent(SimulationObject):
         neighbours = self.get_nearest_neighbours()
 
         # ====== AGENT RULES ======
-        # Rule 1: Edge Following.
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
