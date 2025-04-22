@@ -26,7 +26,7 @@ class SwarmConstructionSimulation:
         # Make area of agents ever so slightly more than the shape area.
         window_area = window_size**2
         # made agent area bigger for quicker testing - lazy
-        total_agent_area = window_area * (self.shape_area_proportion + 0.1)
+        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -209,7 +209,7 @@ class SwarmConstructionSimulation:
 
         # this whole thing scales the inputted shape file to match the robot area
         shape = Image.open(shape_file)
-        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
+        init_shape_area = sum(pixel != 0 for pixel in shape.getdata())
 
         scale_factor = math.sqrt(goal_shape_area / init_shape_area)
         scaled_shape = shape.resize(
