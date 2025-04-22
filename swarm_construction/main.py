@@ -106,7 +106,7 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
-                    color = Color.white,
+                    color=Color.white,
                     shape=self.target_shape,
                 )
                 for pos in conn_pos
@@ -152,7 +152,8 @@ class SwarmConstructionSimulation:
                 pos = [x_offset + dx * 2 * j, dy * i]
                 pos = np.add(pos, cluster_start)
 
-                if (random.random() > 0.5):
+                # randomly make roughly the right proportion of agents each colour
+                if random.random() < self.p_white_agents:
                     color = Color.white
                 else:
                     color = Color.grey
@@ -223,6 +224,17 @@ class SwarmConstructionSimulation:
         # converts image to numpy array
         shape_array = np.array(scaled_shape)
 
+        # counts how many of each colour pixel there are
+        # then works out the proportion of white pixels compared to grey
+        # can be expanded if we want more colours
+        # this proportion is used to make sure we have the right amount of agents
+        # of each colour
+        colour_count = np.array(np.unique(shape_array, return_counts=True)).T
+        colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
+        self.p_white_agents = (
+            colour_count[np.any(colour_count == 255), 1] / np.sum(colour_count[:, 1])
+        )[0, 1]
+
         # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
         # this finds the indices of all not black pixels
@@ -279,7 +291,7 @@ class SwarmConstructionSimulation:
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
 
-        #self.sim.add_update(self.start_agents)
+        # self.sim.add_update(self.start_agents)
 
         self.sim.run()
 
