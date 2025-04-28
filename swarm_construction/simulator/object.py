@@ -5,7 +5,7 @@ from .colors import Color
 from enum import Enum
 from swarm_construction.simulator.engine import SimulationEngine
 
-
+# Private global variable to use to assign object IDs to SimulationObjects.
 _object_id = 0
 
 class OrbitDirection(Enum):
@@ -61,6 +61,7 @@ class SimulationObject:
         self.speed = speed  # Speed is measured in pixels per second!
         self.label = label
 
+        # Give the objec a unique id.
         global _object_id
         self.object_id = _object_id
         _object_id += 1
