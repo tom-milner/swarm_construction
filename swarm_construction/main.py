@@ -6,7 +6,7 @@ from .simulator.shape import SimulationShape
 import math
 import numpy as np
 from PIL import Image
-
+import cv2
 
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
@@ -243,6 +243,11 @@ class SwarmConstructionSimulation:
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
+
+    def get_islands(self):
+        """
+        Gets the white pixels and returns their 
+        """
 
     """    def start_agents(self, fps):
             self.last_agent_time += self.sim.clock.get_rawtime()

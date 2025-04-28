@@ -18,9 +18,10 @@ class Agent(SimulationObject):
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
 
-        def __init__(self, shape, bottom_left):
+        def __init__(self, shape, bottom_left, centre_of_masses):
             self.shape_data = shape
             self.bottom_left = bottom_left
+            self.centre_of_masses = centre_of_masses
 
     def __init__(
         self,
@@ -64,6 +65,9 @@ class Agent(SimulationObject):
         self.local_pos = local_pos
         self.shape = shape
         self.prev_inside_shape = False
+        # bridging stuff
+        self.looped = False
+        self.bridge = False
 
     def start_edge_following(self, fps):
         """Start edge following by checking for a bunch of conditions
@@ -330,7 +334,82 @@ class Agent(SimulationObject):
             self.speed = 0
 
         self.prev_inside_shape = inside_shape
+    
+    def check_bridging(self):
+        """
+        Finds an 'other' position where the current position lies on the line
+        connecting it to the center.
 
+        Args:
+            center (Tuple[float, float]): (cx, cy) center position.
+            current (Tuple[float, float]): (px, py) current position.
+            others (List[Tuple[float, float]]): list of (x, y) other positions.
+            tolerance (float): how close to treat values as equal (floating point tolerance).
+
+        Returns:
+            The matching (x, y) position from others, or None if no match is found.
+        """
+        tolerance = 0.1
+        COMs = self.shape.centre_of_masses
+        # get the closest COM
+        distances_sq = np.sum((COMs - self.local_pos) ** 2, axis=1)
+        min_idx = np.argmin(distances_sq)
+        # Get the closest COM position
+        curent_COM = COMs[min_idx]
+
+        # get possible vectors for bridges to be built current COM -> other COM
+        v = COMs - curent_COM
+        u = COMs - self.local_pos
+
+        # vector maths
+        cross = np.cross(v, u)
+        colinear = np.abs(cross) < tolerance
+        dot = np.sum(v * u, axis=1)
+        dist_v = np.linalg.norm(v, axis=1)
+        dist_u = np.linalg.norm(u, axis=1)
+
+        # local pos must be between the two COMs and on the line between them
+        between  = (dot >= 0) & (dist_u <= dist_v)
+        mask = colinear & between
+        # get the indices of the matching COMs
+        matching_indices = np.where(mask)[0]
+        if len(matching_indices) > 0:
+            return True
+        return False
+
+    def update_bridge(self, neighbours):
+        """Bridge to an island if this one is already full!
+        Assumptions: closest COM is the shape we currently belong to."""
+
+        if not self.looped:
+            self.check_if_looped(self)
+            # no need to bridge yet
+            return
+        if self.bridge:
+            # we are bridging. Shall we stop?
+            return
+        # we need to bridge!
+        if self.check_bridging(self):
+            # we are bridging
+            self.bridge = True
+            self.speed = 0
+        self.shape.centre_of_masses
+
+        return
+
+    def check_if_looped(self):
+        """Check if the agent has looped around the shape.
+
+        Returns:
+            bool: Whether the agent has looped around the shape (True) or not (False).
+        """
+        # Check if we're localised.
+        if self.local_pos is None:
+            return False
+
+        
+        return
+    
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
 
@@ -340,6 +419,9 @@ class Agent(SimulationObject):
 
         # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
         if self.speed == 0:
+            # if we are briding, we dont need to do anything
+            if self.bridge:
+                return
             if self.gradient is None:
                 # we are at start of sim, need to initalise gradients
                 neighbours = self.get_nearest_neighbours()
@@ -359,5 +441,5 @@ class Agent(SimulationObject):
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
-
         self.assemble_shape()
+        self.update_bridge(neighbours)
