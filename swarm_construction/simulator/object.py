@@ -6,6 +6,8 @@ from enum import Enum
 from swarm_construction.simulator.engine import SimulationEngine
 
 
+_object_id = 0
+
 class OrbitDirection(Enum):
     """Simple enum to encode orbiting directions - either CLOCKWISE or ANTI_CLOCKWISE."""
 
@@ -19,7 +21,7 @@ class SimulationObject:
 
     IMPORTANT: any class members (functions/variables) beginning with underscores (_) SHOULD NOT be used by any external or child classes. Whilst this may seem limiting, it makes the simulation more realistic.
 
-    SimulationObjets can either move along vectors specified by a direction and speed, or along an orbit.
+    SimulationObjects can either move along vectors specified by a direction and speed, or along an orbit.
     """
 
     def __init__(
@@ -58,6 +60,10 @@ class SimulationObject:
         self.color = color
         self.speed = speed  # Speed is measured in pixels per second!
         self.label = label
+
+        global _object_id
+        self.object_id = _object_id
+        _object_id += 1
 
         # Add ourselves to the Simulation.
         self._sim_engine._objects.append(self)
@@ -265,7 +271,7 @@ class SimulationObject:
 
             # Skip ourselves.
             # TODO: Add IDs to each object, to make comparisons like this more efficient.
-            if np.array_equal(obj._pos, self._pos):
+            if self.object_id == obj.object_id:
                 continue
 
             # Work out the distance from the current object.
@@ -290,6 +296,6 @@ class SimulationObject:
 
 
         Returns:
-            SimuationObjet: Orbit object.
+            SimuationObject: Orbit object.
         """
         return self._orbit_object
