@@ -254,23 +254,22 @@ class SwarmConstructionSimulation:
 
     def main(self):
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=100
+            "Swarm Construction", 800, draw_rate=10, update_rate=200
         )
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("test_shape.bmp")
-        self.place_agents(100)
+        self.place_shape("sheep.bmp")
+        self.place_agents(300)
 
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
 
-        #self.sim.add_update(self.start_agents)
 
         self.sim.run()
 
