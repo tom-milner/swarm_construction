@@ -1,9 +1,11 @@
 import pygame as pg
 import numpy as np
 import math
-from .colors import Color
+from .colors import Colour
 from enum import Enum
-from swarm_construction.simulator.engine import SimulationEngine
+
+# Private global variable to use to assign object IDs to SimulationObjects.
+_object_id = 0
 
 
 class OrbitDirection(Enum):
@@ -19,15 +21,15 @@ class SimulationObject:
 
     IMPORTANT: any class members (functions/variables) beginning with underscores (_) SHOULD NOT be used by any external or child classes. Whilst this may seem limiting, it makes the simulation more realistic.
 
-    SimulationObjets can either move along vectors specified by a direction and speed, or along an orbit.
+    SimulationObjects can either move along vectors specified by a direction and speed, or along an orbit.
     """
 
     def __init__(
         self,
-        sim_engine: SimulationEngine,
+        sim_engine,
         pos: list = [0, 0],
         radius=30,
-        color: Color = Color.white,
+        color: Colour = Colour.white,
         direction: float = math.pi,
         speed: int = 0,
         label: int = None,
@@ -38,7 +40,7 @@ class SimulationObject:
             sim_engine (SimulationEngine): The SimulationEngine to use this SimulationObject in. This simulation object will automatically add itself to the SimulationEngine.
             pos (list, optional): Object's position, as an [x,y] vector. Defaults to [0, 0].
             radius (int, optional): Radius of the object. Defaults to 30.
-            color (tuple, optional): Color of the object, as an RGB vector (0-255,0-255,0-255). Defaults to white (255, 255, 255).
+            color (tuple, optional): Colour of the object, as an RGB vector (0-255,0-255,0-255). Defaults to white (255, 255, 255).
             direction (_type_, optional): Direction of the object, IN RADIANS. Defaults to math.pi.
             speed (int, optional): Speed of the object, in PIXLES PER SECOND. Defaults to 0.
         """
@@ -59,12 +61,20 @@ class SimulationObject:
         self.speed = speed  # Speed is measured in pixels per second!
         self.label = label
 
-        # Add ourselves to the Simulation.
-        self._sim_engine._objects.append(self)
+        # Give the object a unique id.
+        global _object_id
+        self.object_id = _object_id
+        _object_id += 1
 
-        # Add our update and draw functions to the Simulation.
-        self._sim_engine.add_update(self.update)
-        self._sim_engine.add_draw(self.draw)
+        # The neighbourhood we're currently in.
+        self._neighbourhood = [None, None]
+
+        # The font to use for writing the labels.
+        self._font = pg.font.SysFont("Arial", self._radius)  # Font size = agent radius
+
+        # Add ourselves to the SimulationEngine. The simulation engine will automatically update and draw us.
+        # it will also automatically set the neighbourhood.
+        self._sim_engine._objects.append(self)
 
     def _move_orbit(self, pixels_per_frame: float):
         """Move the object in a circular orbit path around self.orbit_object.
@@ -140,6 +150,13 @@ class SimulationObject:
             # Else, just continue along our movement vector.
             self._move_vector(pixels_per_frame)
 
+        assert (
+            self._pos[0] < self._sim_engine.window_size
+        ), "SimulationObject x-coordinate is outside the world!"
+        assert (
+            self._pos[1] < self._sim_engine.window_size
+        ), "SimulationObject y-coordinate is outside the world!"
+
     def update_label(self, value):
         self._label = value
 
@@ -157,16 +174,15 @@ class SimulationObject:
             * self._radius
         )
         line_end = np.add(line_end, self._pos)
-        pg.draw.line(self._sim_engine.surface, Color.red, self._pos, line_end)
+        pg.draw.line(self._sim_engine.surface, Colour.red, self._pos, line_end)
 
         # Add the label at the centre of the circle
         if self.label is not None:
-            font = pg.font.SysFont("Arial", self._radius)  # Font size = agent radius
-            text_surface = font.render(str(self.label), True, (0, 0, 0))  # Black text
+            text_surface = self._font.render(
+                str(self.label), True, (0, 0, 0)
+            )  # Black text
             text_rect = text_surface.get_rect(center=self._pos)
             self._sim_engine.surface.blit(text_surface, text_rect)
-
-        pg.draw
 
     def check_collision(self, other_object):
         """Check if we have collided with another SimulationObject.
@@ -249,23 +265,17 @@ class SimulationObject:
     def get_nearest_neighbours(self):
         """Get a sorted list of the SimulationObjects nearest to this object in the Simulation, along with their distances.
 
-        Todo:
-            This is inefficient - switch to use Spatial Hashing if things start running slowly!
-
         Returns:
             list(tuple): The nearest SimulationObjects in the simulation, along with their distances: (neighbour, distance)
                         Contains all Agents within comms distance (3 agent diameters)
         """
 
-        # Naive implementation - replace with Spatial Hashing.
+        nearby_agents = self._sim_engine.get_nearby_objects(self._neighbourhood)
         neighbours = []
-
-        # Iterate through all SimulationObjects in the Simulation.
-        for obj in self._sim_engine._objects:
+        for obj in nearby_agents:
 
             # Skip ourselves.
-            # TODO: Add IDs to each object, to make comparisons like this more efficient.
-            if np.array_equal(obj._pos, self._pos):
+            if self.object_id == obj.object_id:
                 continue
 
             # Work out the distance from the current object.
@@ -290,6 +300,6 @@ class SimulationObject:
 
 
         Returns:
-            SimuationObjet: Orbit object.
+            SimuationObject: Orbit object.
         """
         return self._orbit_object
