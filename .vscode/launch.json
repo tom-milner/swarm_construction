@@ -63,6 +63,18 @@
       "type": "debugpy",
       "request": "launch",
       "module": "tests.shape_awareness"
+    },
+    {
+      "name": "Spatial Hashing",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.simulator.tests.spatial_hashing"
+    },{
+      "name": "Profile Simulation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cProfile",
+      "args": "-s tottime -o profile_dump -m swarm_construction.main"
     }
   ]
 }
