@@ -1,5 +1,5 @@
 from swarm_construction.simulator.engine import SimulationEngine
-from swarm_construction.simulator.colors import Color
+from swarm_construction.simulator.colors import Colour
 from swarm_construction.agent import Agent
 from swarm_construction.simulator.shape import SimulationShape
 

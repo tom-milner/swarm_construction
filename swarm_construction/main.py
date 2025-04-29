@@ -1,5 +1,5 @@
 from .simulator.engine import SimulationEngine
-from .simulator.colors import Color
+from .simulator.colors import Colour
 from .agent import Agent
 from .simulator.shape import SimulationShape
 

@@ -1,5 +1,5 @@
 from .simulator.object import SimulationObject
-from .simulator.colors import Color
+from .simulator.colors import Colour
 from .simulator.engine import SimulationEngine
 import numpy as np
 import random
@@ -12,7 +12,7 @@ class Agent(SimulationObject):
     """
 
     radius: int = 10
-    color: Color = Color.white
+    color: Colour = Colour.white
     speed: int = 0
 
     class Shape:
@@ -40,14 +40,14 @@ class Agent(SimulationObject):
 
         # If we've provided this agent with a position in the swarm, it is a seed robot.
         self.seed_robot = False
-        self.color = Color.white
+        self.color = Colour.white
         # we dont know what the gradient is yet.
         self.gradient = None
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
             self.speed = 0
-            self.color = Color.light_green
+            self.color = Colour.light_green
             self.gradient = 0
             self.seed_robot = True
 
@@ -240,7 +240,7 @@ class Agent(SimulationObject):
             return
 
         # Default color if we're not inside the shape but are trying to localise.
-        self.color = Color.light_blue
+        self.color = Colour.light_blue
 
         # Can only see if we're inside the shape if we're localised.
         if self.local_pos is None:
@@ -271,7 +271,7 @@ class Agent(SimulationObject):
             return False
 
         # Woohoo! We're in the shape! Turn orange to celebrate.
-        self.color = Color.orange
+        self.color = Colour.orange
         return True
 
     def update_gradient(self, neighbours):

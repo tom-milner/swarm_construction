@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 import math
-from .colors import Color
+from .colors import Colour
 from enum import Enum
 
 # Private global variable to use to assign object IDs to SimulationObjects.
@@ -29,7 +29,7 @@ class SimulationObject:
         sim_engine,
         pos: list = [0, 0],
         radius=30,
-        color: Color = Color.white,
+        color: Colour = Colour.white,
         direction: float = math.pi,
         speed: int = 0,
         label: int = None,
@@ -40,7 +40,7 @@ class SimulationObject:
             sim_engine (SimulationEngine): The SimulationEngine to use this SimulationObject in. This simulation object will automatically add itself to the SimulationEngine.
             pos (list, optional): Object's position, as an [x,y] vector. Defaults to [0, 0].
             radius (int, optional): Radius of the object. Defaults to 30.
-            color (tuple, optional): Color of the object, as an RGB vector (0-255,0-255,0-255). Defaults to white (255, 255, 255).
+            color (tuple, optional): Colour of the object, as an RGB vector (0-255,0-255,0-255). Defaults to white (255, 255, 255).
             direction (_type_, optional): Direction of the object, IN RADIANS. Defaults to math.pi.
             speed (int, optional): Speed of the object, in PIXLES PER SECOND. Defaults to 0.
         """
@@ -174,7 +174,7 @@ class SimulationObject:
             * self._radius
         )
         line_end = np.add(line_end, self._pos)
-        pg.draw.line(self._sim_engine.surface, Color.red, self._pos, line_end)
+        pg.draw.line(self._sim_engine.surface, Colour.red, self._pos, line_end)
 
         # Add the label at the centre of the circle
         if self.label is not None:
