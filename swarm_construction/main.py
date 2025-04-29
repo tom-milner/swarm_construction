@@ -266,7 +266,7 @@ class SwarmConstructionSimulation:
         self.shape_area_proportion = 0.1
 
         self.place_shape("sheep.bmp")
-        self.place_agents(100)
+        self.place_agents(300)
 
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
