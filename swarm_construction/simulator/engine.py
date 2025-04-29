@@ -7,11 +7,13 @@ from swarm_construction.simulator.colors import Colour
 # pygame sets (0,0) as the top left corner. As such, a direction of
 # 0 points straight down. How irritating is that.
 
+def do_nothing():
+    pass
 
 class SimulationEngine:
     """The main simulation engine. This handles the pygame instance that draws everything to the screen"""
 
-    def __init__(self, title, window_size, draw_rate=30, update_rate=100):
+    def __init__(self, title, window_size, draw_rate=30, update_rate=100, analytics_func=do_nothing):
         """Initialise the Simulation Engine.
 
         Args:
@@ -45,6 +47,8 @@ class SimulationEngine:
 
         # How many times to update per second. Don't let this be less than the draw rate
         self._update_rate = max(draw_rate, update_rate)
+
+        self.analytics_func = analytics_func
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
@@ -114,6 +118,9 @@ class SimulationEngine:
                     self.draw_neighbourhoods = not self.draw_neighbourhoods
                 if event.key == pg.K_p:
                     self.pause = not self.pause
+                if event.key == pg.K_a:
+                    self.pause = True
+                    self.analytics_func();
         
         if self.pause:
             return

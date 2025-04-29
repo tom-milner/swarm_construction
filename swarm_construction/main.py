@@ -253,9 +253,13 @@ class SwarmConstructionSimulation:
                 self.last_agent_time = 0
                 self.agent_move_idx -= 1"""
 
+    def run_analytics(self):
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
+
     def main(self):
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=200
+            "Swarm Construction", 800, draw_rate=10, update_rate=200, analytics_func=self.run_analytics
         )
         self.agents = []
 
@@ -272,10 +276,6 @@ class SwarmConstructionSimulation:
         self.agent_move_idx = -1
 
         self.sim.run()
-
-        if not self.sim.running:
-            ana_suite = Analytics(self.sim, self.seed_origin)
-            ana_suite.run_analytics()
 
 
 if __name__ == "__main__":
