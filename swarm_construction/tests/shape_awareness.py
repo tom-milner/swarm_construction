@@ -153,10 +153,9 @@ class Test:
 
     def run(self):
         self.sim = SimulationEngine("Shape Awareness", 800)
-        self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.7 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.05
@@ -169,4 +168,4 @@ class Test:
 
 if __name__ == "__main__":
     swarm_sim = Test()
-    swarm_sim.main()
+    swarm_sim.run()
