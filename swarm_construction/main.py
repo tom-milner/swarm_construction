@@ -2,6 +2,7 @@ from .simulator.engine import SimulationEngine
 from .simulator.colors import Color
 from .agent import Agent
 from .simulator.shape import SimulationShape
+from .simulator.analytics import Analytic
 
 import math
 import numpy as np
@@ -273,6 +274,10 @@ class SwarmConstructionSimulation:
         #self.sim.add_update(self.start_agents)
 
         self.sim.run()
+
+        if not self.sim.running:
+            Analytic(self.sim)
+            Analytic.get_positions(self.agents)
 
 
 if __name__ == "__main__":
