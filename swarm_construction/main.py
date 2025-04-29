@@ -2,6 +2,7 @@ from .simulator.engine import SimulationEngine
 from .simulator.colors import Colour
 from .agent import Agent
 from .simulator.shape import SimulationShape
+from .simulator.analytics import Analytics
 
 import math
 import numpy as np
@@ -265,12 +266,16 @@ class SwarmConstructionSimulation:
         self.shape_area_proportion = 0.1
 
         self.place_shape("sheep.bmp")
-        self.place_agents(300)
+        self.place_agents(100)
 
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
 
         self.sim.run()
+
+        if not self.sim.running:
+            ana_suite = Analytics(self.sim, self.seed_origin)
+            ana_suite.run_analytics()
 
 
 if __name__ == "__main__":
