@@ -269,7 +269,7 @@ class SimulationObject:
             list(tuple): The nearest SimulationObjects in the simulation, along with their distances: (neighbour, distance)
                         Contains all Agents within comms distance (3 agent diameters)
         """
-        if(not np.any(self._neighbourhood)):
+        if not np.any(self._neighbourhood):
             self._sim_engine.assign_neighbourhood(self)
 
         nearby_agents = self._sim_engine.get_nearby_objects(self._neighbourhood)

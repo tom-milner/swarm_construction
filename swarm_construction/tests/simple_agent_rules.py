@@ -47,7 +47,7 @@ class Test:
         self._generate_cluster(middle, Agent.radius)
 
         # Add one moving agent.
-        new_agent = Agent(self.sim, [middle, self.sim.window_size-1])
+        new_agent = Agent(self.sim, [middle, self.sim.window_size - 1])
         new_agent.speed = 100
 
         # Run the simulation.

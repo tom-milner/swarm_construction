@@ -270,7 +270,6 @@ class SwarmConstructionSimulation:
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
 
-
         self.sim.run()
 
 
