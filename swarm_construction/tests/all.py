@@ -11,4 +11,9 @@ tests = [
     shape_awareness,
 ]
 
-[t.Test().run() for t in tests]
+for t in tests:
+    print('===== TEST ====')
+    print(t.__file__)
+    t.Test().run()
+    print('=====')
+    print()

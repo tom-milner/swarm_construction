@@ -10,7 +10,7 @@ import numpy as np
 class SimulationEngine:
     """The main simulation engine. This handles the pygame instance that draws everything to the screen"""
 
-    def __init__(self, title, window_size, draw_rate=60, update_rate=60):
+    def __init__(self, title, window_size, draw_rate=30, update_rate=100):
         """Initialise the Simulation Engine.
 
         Args:
@@ -188,10 +188,10 @@ class SimulationEngine:
         # Add object to new neighbourhood.
         new_x, new_y = new_neighbourhood_idx
         assert (
-            new_x < self._neighbourhood_dim[0]
+            new_x < self._neighbourhood_idx[0]
         ), "Agent out of bounds - neighbourhood cannot be calculated."
         assert (
-            new_y < self._neighbourhood_dim[1]
+            new_y < self._neighbourhood_idx[1]
         ), "Agent out of bounds - neighbourhood cannot be calculated."
         new_neighbourhood = self._neighbourhoods[new_x][new_y]
         self._neighbourhoods[new_x][new_y] = np.append(new_neighbourhood, sim_obj)
