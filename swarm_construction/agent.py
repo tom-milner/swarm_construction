@@ -1,5 +1,5 @@
 from .simulator.object import SimulationObject
-from .simulator.colors import Color
+from .simulator.colors import Colour
 from .simulator.engine import SimulationEngine
 import numpy as np
 import random
@@ -11,9 +11,10 @@ class Agent(SimulationObject):
     Physics is provided by an underlying SimulationObject class.
     """
 
+    # Defaults
     radius: int = 10
-    color: Color = Color.white
-    speed: int = 0
+    color: Colour = Colour.white
+    start_speed = 100
 
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
@@ -29,6 +30,7 @@ class Agent(SimulationObject):
         start_pos,
         local_pos=None,
         shape: Shape = None,
+        gradient=None
     ):
         """Initialise the agent.
         Purposefully keeping the input params minimal, so that all instances of this agent class are similar - trying to keep it faithful to the paper!
@@ -41,21 +43,21 @@ class Agent(SimulationObject):
 
         # If we've provided this agent with a position in the swarm, it is a seed robot.
         self.seed_robot = False
+        self.color = Colour.white
+        # we dont know what the gradient is yet.
+        self.gradient = gradient
+
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
             self.speed = 0
-            self.color = Color.light_green
-            self.gradient = 0
+            self.color = Colour.light_green
+            if self.gradient == None: self.gradient = 1
             self.seed_robot = True
-        else:
-            # we dont know what the gradient is yet.
-            self.gradient = None
 
         # Initialise the underlying simulation object.
         super().__init__(
             sim_engine,
             start_pos,
-            speed=self.speed,
             radius=self.radius,
             color=self.color,
             label=self.gradient,
@@ -69,8 +71,9 @@ class Agent(SimulationObject):
         self.looped = 0
         self.bridge = False
         self.looped_updated = False
+        self.passed_seed = False
 
-    def start_edge_following(self, fps):
+    def start_edge_following(self, fps, speed):
         """Start edge following by checking for a bunch of conditions
 
         If the conditions are passed, the agent is set to orbit the neighbour it is
@@ -83,7 +86,7 @@ class Agent(SimulationObject):
         if self.local_pos is not None:
             # If we're localised, we can't edge follow.
             return
-        average_start_time = 1
+        average_start_time = 2
         p = 1 / (average_start_time * (fps + 1))
         if random.random() > p:
             # if we are unlucky, we dont edge follow
@@ -131,7 +134,7 @@ class Agent(SimulationObject):
         # gradient that is stationary
         if max_grad_neighbour[0].speed == 0:
             self.set_orbit_object(max_grad_neighbour[0])
-        self.speed = 100
+        self.speed = speed
 
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
@@ -176,6 +179,10 @@ class Agent(SimulationObject):
         if self.speed == 0:
             return
 
+        # If we haven't passed the seed, don't try and localise yet.
+        if not self.passed_seed:
+            return
+
         # Get the neighbours that are already localised.
         localised_neighbours = [n for n in neighbours if n[0].local_pos is not None]
 
@@ -184,18 +191,26 @@ class Agent(SimulationObject):
             self.local_pos = None
             return
 
+        # DEBUG - return the agents actual position as the localised position.
+        # Useful for debugging other parts of the agent that rely on localisation to be working properly.
+        # seed = self._sim_engine._objects[0]
+        # self.local_pos = [self._pos[0] - (seed._pos[0] - seed.local_pos[0]),
+        #                              seed._pos[1] - self._pos[1]]
+        # return
+
         # Set a starting local_pos if necessary.
-        pos = [-self.radius, -self.radius] if self.local_pos is None else self.local_pos
+        pos = [-self.radius, +self.radius] if self.local_pos is None else self.local_pos
 
         # NOTE: This localisation algorithm is a bit rubbish. It's based off the paper, and was designed to manage
         # the constraints they were facing with small, low-power, low-compute robots, and asynchronous comms.
 
         # Their robots are constantly localising in the background. We only have one frame.
-        # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
-        # Perform the "distributed trilateration" algorithm.
-        num_minimisations = 10
-        for i in range(num_minimisations):
+        # Loop the localisation algorithm until the calculated position stops changing per neighbour.
+        # Once this happens 10 times and the position still isn't changing, we are localised (ish)
+        run_minimise = 0
+        last_pos = pos
+        while (run_minimise < 10):
             for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
@@ -224,9 +239,19 @@ class Agent(SimulationObject):
 
                 pos = np.subtract(pos, pos_diff)
 
-        # save calculated position
+            # If our new position is different from our last position, we haven't minimised,
+            # so run the localisation again.
+            diff_from_last = np.subtract(pos,last_pos)
+            # This would usually be linalg.norm, but we omit the sqrt to improve performance.
+            dist = diff_from_last[0]**2 + diff_from_last[1]**2
+            last_pos = pos
+            threshold = 0.5
+            if dist < threshold**2: run_minimise+=1
+            else: run_minimise = 0
+
+        # save our localised position
         self.local_pos = pos
-        # print(self.local_pos)
+
         pass
 
     def is_inside_shape(self) -> bool:
@@ -238,8 +263,8 @@ class Agent(SimulationObject):
         if self.shape is None:
             return
 
-        # Default color if we're not inside the shape
-        self.color = Color.white
+        # Default color if we're not inside the shape but are trying to localise.
+        self.color = Colour.light_blue
 
         # Can only see if we're inside the shape if we're localised.
         if self.local_pos is None:
@@ -255,8 +280,7 @@ class Agent(SimulationObject):
         if not (0 < mapped[0] < size[0] - 1) or not (0 < mapped[1] < size[1] - 1):
             return False
 
-        # Yellow means we're in the bounding box!
-        self.color = Color.yellow
+        # We're in the bounding box!
 
         # Get the raw pixels from the shape, and get the color of the pixel at our mapped position.
         pixels = self.shape.shape_data.getdata()
@@ -270,8 +294,6 @@ class Agent(SimulationObject):
             # We are not in the shape :(
             return False
 
-        # Woohoo! We're in the shape! Turn orange to celebrate.
-        self.color = Color.orange
         return True
 
     def update_gradient(self, neighbours):
@@ -296,22 +318,29 @@ class Agent(SimulationObject):
             valid_gradients.append(i)
 
         # check we have not got an empty list
-        if valid_gradients:
-            self.gradient = 1000
-            lowest_gradient = int(np.array(valid_gradients).min())
-            if self.gradient is None:
-                # set to lowest + 1
-                self.gradient = lowest_gradient + 1
-            elif self.gradient > lowest_gradient + 1:
-                self.gradient = lowest_gradient + 1
+        if not valid_gradients:
+            return
 
-            # update the label on object
-            self.label = self.gradient
+        # Calculate new gradient.
+        self.gradient = 1000
+        lowest_gradient = int(np.array(valid_gradients).min())
+        if self.gradient is None:
+            # set to lowest + 1
+            self.gradient = lowest_gradient + 1
+        elif self.gradient > lowest_gradient + 1:
+            self.gradient = lowest_gradient + 1
+
+        # update the label on object
+        self.label = self.gradient
 
     def assemble_shape(self):
 
         # Can't assemble the shape if we're not localised.
         if self.local_pos is None:
+            return
+
+        # There will never be a shape in the bottom left quadrant.
+        if self.local_pos[0] < 0 and self.local_pos[1] < 0:
             return
 
         # Stopping Conditions.
@@ -330,10 +359,12 @@ class Agent(SimulationObject):
             and self.gradient <= orb_agent.gradient
         ):
             self.speed = 0
+            self.color = Colour.orange
 
         # Condition 2: We are about to exit the shape.
         if not inside_shape and self.prev_inside_shape:
             self.speed = 0
+            self.color = Colour.yellow
 
         self.prev_inside_shape = inside_shape
     
@@ -467,7 +498,10 @@ class Agent(SimulationObject):
         Args:
             fps (float): FPS of the last frame (provided by pygame).
         """
-
+        
+        # Update the underlying SimulationObject.
+        super().update(fps)
+        
         # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
         if self.speed == 0:
             # if we are briding, we dont need to do anything
@@ -479,18 +513,26 @@ class Agent(SimulationObject):
                 self.update_gradient(neighbours)
                 return
             # We might need to start edge following. Better check.
-            self.start_edge_following(fps)
+            self.start_edge_following(fps, self.start_speed)
             return
 
-        # Update the underlying SimulationObject.
-        super().update(fps)
-
+    
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
+
+        # Make sure we're only using the 3 closest neighbours.
+        neighbours = neighbours[0:3]
 
         # ====== AGENT RULES ======
         self.follow_edges(neighbours)
         self.localise(neighbours)
+
+        old_gradient = self.gradient
         self.update_gradient(neighbours)
+
+        # If our gradient goes from 1 to 2, we have passed a seed robot.
+        if self.gradient >= 2 and old_gradient == 1 and not self.passed_seed:
+            self.passed_seed = True
+
         self.assemble_shape()
         self.update_bridge()

@@ -1,7 +1,8 @@
 from .simulator.engine import SimulationEngine
-from .simulator.colors import Color
+from .simulator.colors import Colour
 from .agent import Agent
 from .simulator.shape import SimulationShape
+from .simulator.analytics import Analytics
 
 import math
 import numpy as np
@@ -22,9 +23,9 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        # Make area of agents ever so slightly more than the shape area.
+        
         window_area = window_size**2
-        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
+        total_agent_area = window_area * self.shape_area_proportion 
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -71,6 +72,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    gradient = 0 if i==0 else 1
                 )
             )
 
@@ -250,6 +252,11 @@ class SwarmConstructionSimulation:
 
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
+        self.target_shape = Agent.Shape(scaled_shape, bottom_left)
+
+    def run_analytics(self):
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
         self.target_shape = Agent.Shape(scaled_shape, bottom_left, local_frame_centroids)
 
     def get_islands(self, bmp_shape):
@@ -289,13 +296,17 @@ class SwarmConstructionSimulation:
         return centroids
 
     def main(self):
+
+        # For each pixel an agent travels, we update the sim twice.
+        update_rate = Agent.start_speed * 2
+
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=100
+            "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
         )
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
@@ -308,6 +319,9 @@ class SwarmConstructionSimulation:
 
         #self.sim.add_update(self.start_agents)
 
+        self.place_shape("sheep.bmp")
+        self.place_agents(300)
+        
         self.sim.run()
 
 if __name__ == "__main__":

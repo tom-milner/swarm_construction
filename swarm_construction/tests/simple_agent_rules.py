@@ -8,8 +8,8 @@ class Test:
 
     def _generate_cluster(self, middle, radius):
         cluster = []
-        num_rows = 32
-        num_cols = 32
+        num_rows = 10
+        num_cols = 10
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * radius))
         start = [middle - num_cols * radius, middle - num_rows * radius]
 
@@ -47,7 +47,7 @@ class Test:
         self._generate_cluster(middle, Agent.radius)
 
         # Add one moving agent.
-        new_agent = Agent(self.sim, [middle, self.sim.window_size])
+        new_agent = Agent(self.sim, [middle, self.sim.window_size - 1])
         new_agent.speed = 100
 
         # Run the simulation.
