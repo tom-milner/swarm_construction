@@ -156,6 +156,9 @@ class SimulationObject:
         assert (
             self._pos[1] < self._sim_engine.window_size
         ), "SimulationObject y-coordinate is outside the world!"
+        
+        # Get the sim engine to assign us to a neighbourhood.
+        self._sim_engine.assign_neighbourhood(self)
 
     def update_label(self, value):
         self._label = value

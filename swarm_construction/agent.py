@@ -28,6 +28,7 @@ class Agent(SimulationObject):
         start_pos,
         local_pos=None,
         shape: Shape = None,
+        gradient=None
     ):
         """Initialise the agent.
         Purposefully keeping the input params minimal, so that all instances of this agent class are similar - trying to keep it faithful to the paper!
@@ -42,13 +43,13 @@ class Agent(SimulationObject):
         self.seed_robot = False
         self.color = Colour.white
         # we dont know what the gradient is yet.
-        self.gradient = None
+        self.gradient = gradient
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
             self.speed = 0
             self.color = Colour.light_green
-            self.gradient = 0
+            if self.gradient == None: self.gradient = 1
             self.seed_robot = True
 
         # Initialise the underlying simulation object.
@@ -185,6 +186,13 @@ class Agent(SimulationObject):
             self.local_pos = None
             return
 
+        # DEBUG - return the agents actual position as the localised position.
+        # Useful for debugging other parts of the agent that rely on localisation to be working properly.
+        # seed = self._sim_engine._objects[0]
+        # self.local_pos = [self._pos[0] - (seed._pos[0] - seed.local_pos[0]),
+        #                              seed._pos[1] - self._pos[1]]
+        # return
+
         # Set a starting local_pos if necessary.
         pos = [-self.radius, +self.radius] if self.local_pos is None else self.local_pos
 
@@ -270,8 +278,6 @@ class Agent(SimulationObject):
             # We are not in the shape :(
             return False
 
-        # Woohoo! We're in the shape! Turn orange to celebrate.
-        self.color = Colour.orange
         return True
 
     def update_gradient(self, neighbours):
@@ -307,10 +313,6 @@ class Agent(SimulationObject):
         elif self.gradient > lowest_gradient + 1:
             self.gradient = lowest_gradient + 1
 
-        # If we've passed the seed for the first time, set the flag.
-        if self.gradient == 1 and not self.passed_seed:
-            self.passed_seed = True
-
         # update the label on object
         self.label = self.gradient
 
@@ -340,10 +342,12 @@ class Agent(SimulationObject):
             and self.gradient <= orb_agent.gradient
         ):
             self.speed = 0
+            self.color = Colour.orange
 
         # Condition 2: We are about to exit the shape.
         if not inside_shape and self.prev_inside_shape:
             self.speed = 0
+            self.color = Colour.yellow
 
         self.prev_inside_shape = inside_shape
 
@@ -353,7 +357,9 @@ class Agent(SimulationObject):
         Args:
             fps (float): FPS of the last frame (provided by pygame).
         """
-
+        # Update the underlying SimulationObject.
+        super().update(fps)
+        
         # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
         if self.speed == 0:
             if self.gradient is None:
@@ -365,15 +371,23 @@ class Agent(SimulationObject):
             self.start_edge_following(fps, 100)
             return
 
-        # Update the underlying SimulationObject.
-        super().update(fps)
+        
 
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
 
+        # Make sure we're only using the 3 closest neighbours.
+        # neighbours = neighbours[0:3]
+
         # ====== AGENT RULES ======
         self.follow_edges(neighbours)
         self.localise(neighbours)
+
+        old_gradient = self.gradient
         self.update_gradient(neighbours)
+
+        # If our gradient goes from 1 to 2, we have passed a seed robot.
+        if self.gradient == 2 and old_gradient == 1 and not self.passed_seed:
+            self.passed_seed = True
 
         self.assemble_shape()

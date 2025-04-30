@@ -132,10 +132,9 @@ class SimulationEngine:
         for handler in self.update_handlers:
             handler(fps)
 
-        # Update the objects and reset their neighbourhoods.
+        # Update the objects
         for obj in self._objects:
             obj.update(fps)
-            self.assign_neighbourhood(obj)
 
     def draw(self):
         """Draw the current frame of the simulation. No simulation logic should happen here!"""
