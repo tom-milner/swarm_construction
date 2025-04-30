@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            radius * 6
+            # radius * 2 * 10
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
@@ -200,7 +200,6 @@ class SimulationObject:
 
         Todo:
             Add bounding box checks first - may increase efficiency?
-            Use Spatial Hash approach to increaese efficiency.
 
         Args:
             other_object (SimulationObject): The object to check for collision.

@@ -25,7 +25,7 @@ class SwarmConstructionSimulation:
 
         
         window_area = window_size**2
-        total_agent_area = window_area * self.shape_area_proportion 
+        total_agent_area = window_area * (self.shape_area_proportion + 0.005)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -137,11 +137,12 @@ class SwarmConstructionSimulation:
         cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
-        for i in range(side_len):
+        aspect_ratio = 4/3
+        for i in range(round(side_len / aspect_ratio)):
             # Every other row is nudged forwards, so the circles fit snuggly.
             x_offset = 0 if i % 2 == 0 else dx
 
-            for j in range(side_len):
+            for j in range(round(side_len * aspect_ratio)):
 
                 # If all the agents have been generated, we're done.
                 if num_agents <= 0:
@@ -253,7 +254,7 @@ class SwarmConstructionSimulation:
     def main(self):
 
         # For each pixel an agent travels, we update the sim twice.
-        update_rate = Agent.start_speed * 2
+        update_rate = Agent.start_speed * 4
 
         self.sim = SimulationEngine(
             "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
@@ -261,13 +262,13 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.1
+        self.shape_area_proportion = 0.19
 
         self.place_shape("sheep.bmp")
-        self.place_agents(300)
+        self.place_agents(1000)
         
         self.sim.run()
 
