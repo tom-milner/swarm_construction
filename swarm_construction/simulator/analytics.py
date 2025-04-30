@@ -29,9 +29,9 @@ class Analytics:
         plt.show() required to show the graphs
         """
         self.get_agent_data(self.agents, self.seed_origin)
-        self.plot_local_pos()
-        self.plot_actual_pos()
-        self.plot_sidebyside()
+        #self.plot_local_pos()
+        #self.plot_actual_pos()
+        #self.plot_sidebyside()
         self.plot_comparison(True)
         self.plot_error_heatmap()
         plt.show()
@@ -331,6 +331,11 @@ class Analytics:
 
 
     def localisation_err_gradient(self):
+        """ Calculates the average location error per gradient value
+
+        Returns:
+            array: list of av loc errors, gradient is the array index
+        """
         total_error = np.zeros(np.max(self.agent_gradients) + 1)
         num_agents = np.zeros(np.max(self.agent_gradients) + 1)
         # finds total error and the number of agents for each gradient value

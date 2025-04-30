@@ -266,7 +266,7 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("sheep.bmp")
+        self.place_shape("wrench.bmp")
         self.place_agents(300)
         
         self.sim.run()
