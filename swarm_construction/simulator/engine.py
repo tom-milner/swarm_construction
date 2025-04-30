@@ -1,16 +1,19 @@
 import pygame as pg
 import math
 import numpy as np
+from swarm_construction.simulator.colors import Colour
 
 # A NOTE ON THE PYGAME COORDINATE SYSTEM
 # pygame sets (0,0) as the top left corner. As such, a direction of
 # 0 points straight down. How irritating is that.
 
+def do_nothing():
+    pass
 
 class SimulationEngine:
     """The main simulation engine. This handles the pygame instance that draws everything to the screen"""
 
-    def __init__(self, title, window_size, draw_rate=30, update_rate=100):
+    def __init__(self, title, window_size, draw_rate=30, update_rate=100, analytics_func=do_nothing):
         """Initialise the Simulation Engine.
 
         Args:
@@ -29,6 +32,7 @@ class SimulationEngine:
         self.surface = pg.display.set_mode((self.window_size, self.window_size))
         self.running = False
         self.pause = False
+        self.draw_neighbourhoods = False
 
         # These lists contain the functions to run on each game loop.
         self.update_handlers = []
@@ -43,6 +47,8 @@ class SimulationEngine:
 
         # How many times to update per second. Don't let this be less than the draw rate
         self._update_rate = max(draw_rate, update_rate)
+
+        self.analytics_func = analytics_func
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
@@ -62,7 +68,7 @@ class SimulationEngine:
         # each simulation object to immediately query it's neighbours.
 
         # Calculate the size of dimensions of each neighbourhood based on the agent radius.
-        neigh_width = self._objects[0]._radius * 4
+        neigh_width = self._objects[0]._radius * 8
         self._neighbourhood_dim = [neigh_width, neigh_width]
 
         # Calculate the number of neighbourhoods along each axis (x and y).
@@ -75,10 +81,6 @@ class SimulationEngine:
         for x in range(self._neighbourhood_idx[0]):
             for y in range(self._neighbourhood_idx[1]):
                 self._neighbourhoods[x][y] = np.array([])
-
-        # Assign each of the objects to a neighbourhood.
-        for obj in self._objects:
-            self.assign_neighbourhood(obj)
 
         # The number of updates we should run before drawing a frame.
         draw_frame_count = round(self._update_rate / self._draw_rate)
@@ -107,10 +109,15 @@ class SimulationEngine:
             ):
                 self.running = False
 
-            # Pause the simulation on click
-            if event.type == pg.MOUSEBUTTONUP:
-                self.pause = not self.pause
-
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_n:
+                    self.draw_neighbourhoods = not self.draw_neighbourhoods
+                if event.key == pg.K_p:
+                    self.pause = not self.pause
+                if event.key == pg.K_a:
+                    if not self.pause: return
+                    self.analytics_func();
+        
         if self.pause:
             return
 
@@ -121,10 +128,9 @@ class SimulationEngine:
         for handler in self.update_handlers:
             handler(fps)
 
-        # Update the objects and reset their neighbourhoods.
+        # Update the objects
         for obj in self._objects:
             obj.update(fps)
-            self.assign_neighbourhood(obj)
 
     def draw(self):
         """Draw the current frame of the simulation. No simulation logic should happen here!"""
@@ -139,6 +145,22 @@ class SimulationEngine:
         # Draw the objects.
         for obj in self._objects:
             obj.draw()
+
+        # Draw Neighbourhoods.
+        if self.draw_neighbourhoods:
+            # Vertical Lines
+            for i in range(self._neighbourhood_idx[0]):
+                x = i * self._neighbourhood_dim[0]
+                start = (x, 0)
+                end = (x, self.window_size)
+                pg.draw.line(self.surface, Colour.orange, start, end)
+
+            # Horizontal Lines
+            for i in range(self._neighbourhood_idx[1]):
+                y = i * self._neighbourhood_dim[1]
+                start = (0, y)
+                end = (self.window_size, y)
+                pg.draw.line(self.surface, Colour.orange, start, end)
 
         # Draw the simulation to the pygame window.
         pg.display.update()
@@ -199,20 +221,20 @@ class SimulationEngine:
         # Set neighbourhood of object.
         sim_obj._neighbourhood = new_neighbourhood_idx
 
-
     def get_nearby_objects(self, neighbourhood_coords):
         """Get all the simulation objects in a 3x3 square around the provided neighbourhood.
 
         Args:
             neighbourhood_coords (tuple): (x,y) indices of neighbourhood.
         """
-        x, y = neighbourhood_coords 
+        if not np.any(neighbourhood_coords): return np.array([])
+        x, y = neighbourhood_coords
         max_x, max_y = self._neighbourhood_idx
         nearby = np.array([])
 
         # Loop through the neighbourhood to the left, ourselves, and the neighbourhood to the right.
         for dx in range(-1, 2):
-            
+
             # Calculate the x coordinate of the current neighbourhood.
             target_x = x + dx
 

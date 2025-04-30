@@ -12,8 +12,8 @@ tests = [
 ]
 
 for t in tests:
-    print('===== TEST ====')
+    print("===== TEST ====")
     print(t.__file__)
     t.Test().run()
-    print('=====')
+    print("=====")
     print()

@@ -140,6 +140,13 @@ class SimulationObject:
         if fps == 0:
             return
 
+        # If we don't have a neighbourhood, assign one to us.
+        if not np.any(self._neighbourhood):
+            self._sim_engine.assign_neighbourhood(self)
+
+        # If we have no speed, no need to recalculate any movement stuff.
+        if self.speed == 0: return
+
         # Calculate the number of pixels we must move per frame, in order to produce the desired speed.
         pixels_per_frame = self.speed / fps
 
@@ -156,6 +163,9 @@ class SimulationObject:
         assert (
             self._pos[1] < self._sim_engine.window_size
         ), "SimulationObject y-coordinate is outside the world!"
+        
+        # Get the sim engine to reassign us to a neighbourhood.
+        self._sim_engine.assign_neighbourhood(self)
 
     def update_label(self, value):
         self._label = value
@@ -269,7 +279,7 @@ class SimulationObject:
             list(tuple): The nearest SimulationObjects in the simulation, along with their distances: (neighbour, distance)
                         Contains all Agents within comms distance (3 agent diameters)
         """
-        if(not np.any(self._neighbourhood)):
+        if not np.any(self._neighbourhood):
             self._sim_engine.assign_neighbourhood(self)
 
         nearby_agents = self._sim_engine.get_nearby_objects(self._neighbourhood)
@@ -282,12 +292,12 @@ class SimulationObject:
 
             # Work out the distance from the current object.
             diff = np.subtract(self._pos, obj._pos)
-            dist = np.linalg.norm(diff)
+            dist_squared = diff[0]**2 + diff[1]**2
 
             # only neighbours within comms distance
-            if dist <= self._comms_radius:
+            if dist_squared <= self._comms_radius**2:
                 # Store object and distance in neighbours array.
-                entry = [obj, dist]
+                entry = [obj, math.sqrt(dist_squared)]
                 neighbours.append(entry)
 
         if len(neighbours) == 0:
