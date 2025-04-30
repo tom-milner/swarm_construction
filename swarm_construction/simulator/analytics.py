@@ -2,6 +2,7 @@ from swarm_construction.simulator.engine import SimulationEngine
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 
 class Analytics:
@@ -11,18 +12,34 @@ class Analytics:
         self.seed_origin = seed_origin
         self.active = True
 
+        # Sets the axis limits for the plots 
         self.axis_x_min = -1 * seed_origin[0]
         self.axis_x_max = self._sim_engine.window_size - seed_origin[0]
         self.axis_y_min = -1 * (self._sim_engine.window_size - seed_origin[1]) * 0.5
         self.axis_y_max = seed_origin[1]
     
     def run_analytics(self):
+        """Run analytics suite
+
+        self.get_positions is required to get the local and actual agent positions
+        Then uncomment any graphs wanted
+        """
         self.get_positions(self.agents, self.seed_origin)
         #self.plot_local_pos()
         #self.plot_actual_pos()
-        self.plot_sidebyside()
+        #self.plot_sidebyside()
+        self.plot_comparison()
     
     def get_positions(self, agents, seed_origin):
+        """Get local and actual positions of each agent and place in self.agent_positions
+
+        self.agent_positions is a 3D array of seed based coords
+        Indexing is a little confusing
+
+        Args:
+            agents (list of objects): list of agent objects 
+            seed_origin ([x, y]): location of the seed origin in global coords
+        """
         self.agent_positions = []
         for agent in agents:
             if np.all(agent.local_pos != None):
@@ -36,8 +53,13 @@ class Analytics:
 
 
     def plot_local_pos(self):
+        """Plots a map of local positions
+
+        This is basically where the agents think they are 
+        """
         plt.axis([self.axis_x_min, self.axis_x_max, self.axis_y_min, self.axis_y_max])
         plt.axis("equal")
+        plt.title("Agent Local Position")
         for (idx, pos) in enumerate(self.agent_positions[:,0]):
             if self.agents[idx].seed_robot:
                 outline = "green"
@@ -52,8 +74,14 @@ class Analytics:
         
         
     def plot_actual_pos(self):
+        """Plots a map of actual positions
+
+        This is where the agents actually are
+        no matter what they think - they're silly guys 
+        """
         plt.axis([self.axis_x_min, self.axis_x_max, self.axis_y_min, self.axis_y_max])
         plt.axis("equal")
+        plt.title("Agent Local Position")
         for (idx, pos) in enumerate(self.agent_positions[:,1]):
             if self.agents[idx].seed_robot:
                 outline = "green"
@@ -68,6 +96,8 @@ class Analytics:
 
 
     def plot_sidebyside(self):
+        """Plots local pos and actual pos side by side in subplots
+        """
         fig, (ax1, ax2) = plt.subplots(1,2)
         for ax in fig.get_axes():
             ax.set_aspect(1)
@@ -103,5 +133,35 @@ class Analytics:
                 verticalalignment="center",
                 horizontalalignment="center"
             )
+
+        plt.show()
+
+    def plot_comparison(self):
+        """Plots a comparison of actual and local position
+
+        Actual position is black circles, with local position overlayed with red dots
+        Red lines connect the agents positions
+        """
+        fig,ax = plt.subplots()
+        for (idx, pos) in enumerate(self.agent_positions):
+            if self.agents[idx].seed_robot:
+                outline = "green"
+                fill = True
+                color = "green"
+            else:
+                outline = "black"
+                fill = False
+            point = plt.Circle(pos[1], radius = self.agents[0]._radius, ec = outline, fill = fill, color = color)
+            ax.add_artist(point) 
+            point2 = plt.Circle(pos[0], radius = 3, color = "red")
+            ax.add_artist(point2)
+            ax.plot([pos[0,0],pos[1,0]], [pos[0,1],pos[1,1]], color = "r")
+        ax.set_xlim([self.axis_x_min, self.axis_x_max])
+        ax.set_ylim([self.axis_y_min, self.axis_y_max])
+        ax.set_aspect(1)
+        legend_elements = [Line2D([],[], color='white', marker = 'o', markeredgecolor = 'black', label='Actual Position', markersize=10),
+                          Line2D([],[], color='white', marker = 'o', markerfacecolor = 'red', label='Local Position', markersize=5)]
+        ax.legend(handles = legend_elements)
+        ax.set_title("Agents actual position vs local position")
 
         plt.show()
