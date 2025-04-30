@@ -26,8 +26,12 @@ def toggle_pixel(event, row, col):
 
 def save_bitmap(shape_state):
     # Crops any rows and columns that only include black pixels
-    shape_state = shape_state[~np.all(shape_state == 0, axis=1)]
-    shape_state = shape_state[:, ~np.all(shape_state == 0, axis=0)]
+
+    #------ comment out for multiple island creation -----
+    #shape_state = shape_state[~np.all(shape_state == 0, axis=1)]
+    #shape_state = shape_state[:, ~np.all(shape_state == 0, axis=0)]
+    # ---
+    
     crop_rows, crop_cols = shape_state.shape
 
     # Create a new image (1-bit mode)

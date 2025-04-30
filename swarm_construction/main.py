@@ -240,22 +240,53 @@ class SwarmConstructionSimulation:
         # Create coordinates of bottom left pixel using origin [x,y]=[0,0]=bottom left
         bottom_left = [origin_px[1], shape_array.shape[0] - origin_px[0]]
 
+        # find the islands in the shape
+        centroids = self.get_islands(scaled_shape)
+        local_frame_centroids = [[COM[0] - bottom_left[0],shape_array.shape[0] - bottom_left[1] - COM[1]] for COM in centroids]
+
+        print(centroids)
+        print(bottom_left)
+        print(local_frame_centroids)
+
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
-        self.target_shape = Agent.Shape(scaled_shape, bottom_left)
+        self.target_shape = Agent.Shape(scaled_shape, bottom_left, local_frame_centroids)
 
-    def get_islands(self):
+    def get_islands(self, bmp_shape):
         """
-        Gets the white pixels and returns their 
+        Finds white pixel clusters and returns their centroids.
         """
+        # Convert PIL image to grayscale NumPy array
+        img = np.array(bmp_shape.convert("L"))
 
-    """    def start_agents(self, fps):
-            self.last_agent_time += self.sim.clock.get_rawtime()
-            interval = 1
-            if (self.last_agent_time / 1000) > interval:
-                self.agents[self.agent_move_idx].speed = 100
-                self.last_agent_time = 0
-                self.agent_move_idx -= 1"""
+        # Threshold to binary
+        _, binary = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+
+        # Find connected components
+        num_labels, labels_im = cv2.connectedComponents(binary)
+
+        centroids = []
+        for label in range(1, num_labels):  # skip label 0 (background)
+            mask = (labels_im == label)
+            ys, xs = np.where(mask)
+            x_center = np.mean(xs)
+            y_center = np.mean(ys)
+            centroids.append((x_center, y_center))
+
+        # ======== debug =================
+        # Convert grayscale to BGR so we can draw colored circles
+        # Convert PIL image to grayscale NumPy array
+        img = np.array(bmp_shape.convert("L"))
+        img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        # Draw red circles at centroids
+        for (x, y) in centroids:
+            cv2.circle(img_color, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+        cv2.imshow("Centroids on Scaled Shape", img_color)
+        print("Press any key in the image window to continue...")
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        return centroids
 
     def main(self):
         self.sim = SimulationEngine(
@@ -269,8 +300,8 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("test_shape.bmp")
-        self.place_agents(100)
+        self.place_shape("mega_square_test.bmp")
+        self.place_agents(50)
 
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
@@ -278,7 +309,6 @@ class SwarmConstructionSimulation:
         #self.sim.add_update(self.start_agents)
 
         self.sim.run()
-
 
 if __name__ == "__main__":
     swarm_sim = SwarmConstructionSimulation()

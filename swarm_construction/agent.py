@@ -66,8 +66,9 @@ class Agent(SimulationObject):
         self.shape = shape
         self.prev_inside_shape = False
         # bridging stuff
-        self.looped = False
+        self.looped = 0
         self.bridge = False
+        self.looped_updated = False
 
     def start_edge_following(self, fps):
         """Start edge following by checking for a bunch of conditions
@@ -279,6 +280,7 @@ class Agent(SimulationObject):
         Args:
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
+
         # we only use the closest neighbours (ones we are touching or almost touching)
         neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2.1]
 
@@ -335,79 +337,128 @@ class Agent(SimulationObject):
 
         self.prev_inside_shape = inside_shape
     
-    def check_bridging(self):
+    def check_bridging(self, tolerance = 5):
         """
-        Finds an 'other' position where the current position lies on the line
-        connecting it to the center.
+        Checks if self.local_pos lies within a given perpendicular distance (tolerance)
+        from any line segment connecting two COMs, and that the closest point lies
+        between the two COMs (not extended beyond them).
 
         Args:
-            center (Tuple[float, float]): (cx, cy) center position.
-            current (Tuple[float, float]): (px, py) current position.
-            others (List[Tuple[float, float]]): list of (x, y) other positions.
-            tolerance (float): how close to treat values as equal (floating point tolerance).
+            tolerance (float): Maximum allowed perpendicular distance to consider a bridge.
 
         Returns:
-            The matching (x, y) position from others, or None if no match is found.
+            bool: True if bridging condition is met, else False.
         """
-        tolerance = 0.1
-        COMs = self.shape.centre_of_masses
-        # get the closest COM
-        distances_sq = np.sum((COMs - self.local_pos) ** 2, axis=1)
-        min_idx = np.argmin(distances_sq)
-        # Get the closest COM position
-        curent_COM = COMs[min_idx]
+        # arrays of current position and COMs
+        COMs = np.array(self.shape.centre_of_masses, dtype=np.float64)
+        pos = np.array(self.local_pos, dtype=np.float64)
+        # if there isnt another one, we cant bridge.
+        if len(COMs) < 2:
+            return None
+        # for now lets just consider the closest COM and find all the vectors to other ones
+        deltas = COMs - pos
+        distances = np.linalg.norm(deltas, axis=1)
+        closest_index = np.argmin(distances)
 
-        # get possible vectors for bridges to be built current COM -> other COM
-        v = COMs - curent_COM
-        u = COMs - self.local_pos
+        # go thro and check the other COMs
+        for i in range(len(COMs)):
+            A = COMs[i]
+            B = COMs[closest_index]
+            AB = B - A
 
-        # vector maths
-        cross = np.cross(v, u)
-        colinear = np.abs(cross) < tolerance
-        dot = np.sum(v * u, axis=1)
-        dist_v = np.linalg.norm(v, axis=1)
-        dist_u = np.linalg.norm(u, axis=1)
+            # Skip if the same COMs
+            AB_len_sq = np.dot(AB, AB)
+            if AB_len_sq == 0:
+                continue  
+            
+            # project the point onto the segment
+            AP = pos - A
+            t = np.dot(AP, AB) / AB_len_sq
 
-        # local pos must be between the two COMs and on the line between them
-        between  = (dot >= 0) & (dist_u <= dist_v)
-        mask = colinear & between
-        # get the indices of the matching COMs
-        matching_indices = np.where(mask)[0]
-        if len(matching_indices) > 0:
-            return True
-        return False
+            # Check if projection lies within the segment
+            if 0 <= t <= 1:  
+                closest_point = A + t * AB
+                # get perpendicular distance, return if in tolerance
+                dist = np.linalg.norm(pos - closest_point)
+                if dist <= tolerance:
+                    return COMs[i]
 
-    def update_bridge(self, neighbours):
+        return None
+        
+        """    def check_bridging(self):
+                tolerance = 0.5
+                COMs = np.array(self.shape.centre_of_masses, dtype=np.float64)
+                # get the closest COM
+                distances_sq = np.sum((COMs - self.local_pos) ** 2, axis=1)
+                min_idx = np.argmin(distances_sq)
+                # Get the closest COM position
+                curent_COM = COMs[min_idx]
+
+                # get possible vectors for bridges to be built current COM -> other COM
+                v = COMs - curent_COM
+                u = COMs - self.local_pos
+
+                # vector maths
+                cross = np.cross(v, u)
+                colinear = np.abs(cross) < tolerance
+                dot = np.sum(v * u, axis=1)
+                dist_v = np.linalg.norm(v, axis=1)
+                dist_u = np.linalg.norm(u, axis=1)
+
+                # local pos must be between the two COMs and on the line between them
+                between  = (dot >= 0) & (dist_u <= dist_v)
+                mask = colinear & between
+                # get the indices of the matching COMs
+                matching_indices = np.where(mask)[0]
+                if len(matching_indices) > 0:
+                    return True
+                return False"""
+
+    def update_bridge(self):
         """Bridge to an island if this one is already full!
         Assumptions: closest COM is the shape we currently belong to."""
-
-        if not self.looped:
-            self.check_if_looped(self)
+        
+        # ain't localised, dont bridge
+        if self.local_pos is None:
+            return
+        # cheating, maybe? Don't bridge if we are in a new shape
+        if self.color is Color.orange:
+            return
+        # check if we have gone round -  there is no more space
+        if self.looped < 2:
+            self.check_if_looped()
             # no need to bridge yet
             return
-        if self.bridge:
-            # we are bridging. Shall we stop?
-            return
-        # we need to bridge!
-        if self.check_bridging(self):
-            # we are bridging
-            self.bridge = True
-            self.speed = 0
-        self.shape.centre_of_masses
-
+        # We can bridge, lets check if possible
+        desired_COM = self.check_bridging(10)
+        if desired_COM is not None:
+            # below this distance, we encourage bridging. Above, we discourage bridging
+            ideal_COM_distance = 30
+            # what is the average probability we should bridge
+            nominal_bridging_probability = 0.2
+            # calculate
+            p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(desired_COM)) * nominal_bridging_probability * (self.looped-1))
+            # print(f"probability bridging at {self.local_pos}, probility: {p_bridging}")
+            if random.random() < p_bridging:
+                # print(f"we have bridged at local position {self.local_pos}, gobally at:{self._pos}")
+                # we are bridging, stop
+                self.color = Color.red
+                self.speed = 0
         return
 
     def check_if_looped(self):
         """Check if the agent has looped around the shape.
-
         Returns:
-            bool: Whether the agent has looped around the shape (True) or not (False).
+            int: The number of times the agent has passed the negitive x axis.
         """
-        # Check if we're localised.
-        if self.local_pos is None:
-            return False
-
-        
+        # if we are directly left to seeds
+        if self.local_pos[1]**2 < 0.5 and self.local_pos[0] < 0:
+            # only trigger once
+            if not self.looped_updated:
+                self.looped += 1
+                self.looped_updated = True
+        else:
+            self.looped_updated = False
         return
     
     def update(self, fps):
@@ -442,4 +493,4 @@ class Agent(SimulationObject):
         self.localise(neighbours)
         self.update_gradient(neighbours)
         self.assemble_shape()
-        self.update_bridge(neighbours)
+        self.update_bridge()
