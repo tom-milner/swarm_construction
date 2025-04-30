@@ -2,6 +2,7 @@ from swarm_construction.simulator.engine import SimulationEngine
 from swarm_construction.simulator.colors import Colour
 from swarm_construction.agent import Agent
 from swarm_construction.simulator.shape import SimulationShape
+from swarm_construction.simulator.analytics import Analytics
 
 import math
 import numpy as np
@@ -69,6 +70,7 @@ class Test:
                 seed_pos[i],
                 local_pos=local_pos[i],
                 shape=self.target_shape,
+                gradient= 0 if i==0 else 1
             )
 
         # Return the positions of the seeds.
@@ -117,8 +119,6 @@ class Test:
         # This flips the shape, may need to be removed if we change how we generate shapes
         # NOTE not required when using shape_create_gui to make bmp file!
         # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
-        scaled_shape.save("scaled_shape_test.bmp")
-
         # converts image to numpy array
         shape_array = np.array(scaled_shape)
 
@@ -130,12 +130,13 @@ class Test:
         # confusingly when dealing with the image through pillow pixels are identified as [x,y]
         # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
         max_y_px = white_px_index[white_px_index[:, 0] == np.max(white_px_index[:, 0])]
+
+        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
+        # in format [y,x] (silly), with origin (0,0) top left.
         origin_px = max_y_px[np.argmin(max_y_px[:, 1])]
 
         # draw_origin is the location for the top left pixel in the image - of any colour
-        # self.seed_origin is the centre of the seeds in format [x,y] (with 0,0 in top left corner)
-        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
-        # in format [y,x] (silly)
+        # self.seed_origin is the centre of the seeds in format [x,y] (with origin0,0 in top left corner)
         draw_origin = [
             self.seed_origin[0] - origin_px[1],
             self.seed_origin[1] - origin_px[0],
@@ -150,13 +151,17 @@ class Test:
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
+    
+    def run_analytics(self):
+            ana_suite = Analytics(self.sim, self.seed_origin)
+            ana_suite.run_analytics()
 
     def run(self):
-        self.sim = SimulationEngine("Shape Awareness", 800)
-        self.agents = []
 
+        # Setup the simulation
+        self.sim = SimulationEngine("Localisation Test", 800, analytics_func=self.run_analytics)
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.7 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.05
@@ -169,4 +174,4 @@ class Test:
 
 if __name__ == "__main__":
     swarm_sim = Test()
-    swarm_sim.main()
+    swarm_sim.run()

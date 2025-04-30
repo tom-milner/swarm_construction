@@ -23,9 +23,9 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        # Make area of agents ever so slightly more than the shape area.
+        
         window_area = window_size**2
-        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
+        total_agent_area = window_area * self.shape_area_proportion 
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -72,6 +72,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    gradient = 0 if i==0 else 1
                 )
             )
 
@@ -245,38 +246,30 @@ class SwarmConstructionSimulation:
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
-    """    def start_agents(self, fps):
-            self.last_agent_time += self.sim.clock.get_rawtime()
-            interval = 1
-            if (self.last_agent_time / 1000) > interval:
-                self.agents[self.agent_move_idx].speed = 100
-                self.last_agent_time = 0
-                self.agent_move_idx -= 1"""
+    def run_analytics(self):
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
 
     def main(self):
+
+        # For each pixel an agent travels, we update the sim twice.
+        update_rate = Agent.start_speed * 2
+
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=200
+            "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
         )
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
         self.place_shape("sheep.bmp")
         self.place_agents(300)
-
-        self.last_agent_time = self.sim.clock.get_time()
-        self.agent_move_idx = -1
-
-
+        
         self.sim.run()
-
-        if not self.sim.running:
-            ana_suite = Analytics(self.sim, self.seed_origin)
-            ana_suite.run_analytics()
 
 
 if __name__ == "__main__":
