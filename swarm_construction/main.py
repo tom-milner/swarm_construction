@@ -252,7 +252,7 @@ class SwarmConstructionSimulation:
 
     def main(self):
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=200, analytics_func=self.run_analytics
+            "Swarm Construction", 800, draw_rate=30, update_rate=200, analytics_func=self.run_analytics
         )
         self.agents = []
 

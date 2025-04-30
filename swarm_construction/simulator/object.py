@@ -140,6 +140,13 @@ class SimulationObject:
         if fps == 0:
             return
 
+        # If we don't have a neighbourhood, assign one to us.
+        if not np.any(self._neighbourhood):
+            self._sim_engine.assign_neighbourhood(self)
+            
+        # If we have no speed, no need to recalculate any movement stuff.
+        if self.speed == 0: return
+
         # Calculate the number of pixels we must move per frame, in order to produce the desired speed.
         pixels_per_frame = self.speed / fps
 
@@ -157,7 +164,7 @@ class SimulationObject:
             self._pos[1] < self._sim_engine.window_size
         ), "SimulationObject y-coordinate is outside the world!"
         
-        # Get the sim engine to assign us to a neighbourhood.
+        # Get the sim engine to reassign us to a neighbourhood.
         self._sim_engine.assign_neighbourhood(self)
 
     def update_label(self, value):

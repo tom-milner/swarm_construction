@@ -1,5 +1,6 @@
 from swarm_construction.simulator.engine import SimulationEngine
 from swarm_construction.agent import Agent
+from swarm_construction.simulator.analytics import Analytics
 from swarm_construction.simulator.colors import Colour
 import math
 import numpy as np
@@ -40,10 +41,10 @@ class Test:
         local_pos = [delta * [1, -1] for delta in seed_deltas]
 
         # Add the seeds to the simulation.
-        Agent(self.sim, seed_pos[0], local_pos=local_pos[0]),
-        Agent(self.sim, seed_pos[1], local_pos=local_pos[1]),
-        Agent(self.sim, seed_pos[2], local_pos=local_pos[2]),
-        Agent(self.sim, seed_pos[3], local_pos=local_pos[3]),
+        Agent(self.sim, seed_pos[0], local_pos=local_pos[0], gradient=0),
+        Agent(self.sim, seed_pos[1], local_pos=local_pos[1], gradient=1),
+        Agent(self.sim, seed_pos[2], local_pos=local_pos[2], gradient=1),
+        Agent(self.sim, seed_pos[3], local_pos=local_pos[3], gradient=1),
 
         # Return the positions of the seeds.
         return seed_pos
@@ -82,20 +83,25 @@ class Test:
                 f"moving @ {self.agent.local_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400])* [1,-1]}"
             )
 
+
+    def run_analytics(self):
+            ana_suite = Analytics(self.sim, self.seed_origin)
+            ana_suite.run_analytics()
+
     def run(self):
 
         # Setup the simulation
-        self.sim = SimulationEngine("Localisation Test", 800)
+        self.sim = SimulationEngine("Localisation Test", 800, analytics_func=self.run_analytics)
         middle = self.sim.window_size / 2
 
         # Setup seed agents.
         Agent.radius = 30
-        seed_origin = [middle, middle]
+        self.seed_origin = [middle, middle]
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * Agent.radius))
         column_spacing = Agent.radius
 
         # Generate the seed agents around the origin.
-        seed_pos = self.generate_seeds(line_spacing, column_spacing, seed_origin)
+        seed_pos = self.generate_seeds(line_spacing, column_spacing, self.seed_origin)
 
         # Setup moving agents.
         agent_pos = [0, 2 * line_spacing]

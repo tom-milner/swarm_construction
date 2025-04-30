@@ -81,7 +81,7 @@ class Agent(SimulationObject):
         if self.local_pos is not None:
             # If we're localised, we can't edge follow.
             return
-        average_start_time = 1
+        average_start_time = 2
         p = 1 / (average_start_time * (fps + 1))
         if random.random() > p:
             # if we are unlucky, we dont edge follow
@@ -203,8 +203,10 @@ class Agent(SimulationObject):
         # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
         # Perform the "distributed trilateration" algorithm.
-        num_minimisations = 10
-        for i in range(num_minimisations):
+        # Loop the algorithm until the calculated position stops changing per loop.
+        run_minimise = True
+        last_pos = pos
+        while (run_minimise):
             for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
@@ -233,9 +235,17 @@ class Agent(SimulationObject):
 
                 pos = np.subtract(pos, pos_diff)
 
-        # save calculated position
+            # If our new position is different from our last position, we haven't minimised,
+            # so run the localisation again.
+            diff_from_last = np.subtract(pos,last_pos)
+            # This would usually be linalg.norm, but we omit the sqrt to improve performance.
+            dist = diff_from_last[0]**2 + diff_from_last[1]**2
+            last_pos = pos
+            run_minimise =  dist > 1**2
+
+        # save our localised position
         self.local_pos = pos
-        # print(self.local_pos)
+
         pass
 
     def is_inside_shape(self) -> bool:
@@ -357,6 +367,7 @@ class Agent(SimulationObject):
         Args:
             fps (float): FPS of the last frame (provided by pygame).
         """
+        
         # Update the underlying SimulationObject.
         super().update(fps)
         
@@ -371,13 +382,12 @@ class Agent(SimulationObject):
             self.start_edge_following(fps, 100)
             return
 
-        
-
+    
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
 
         # Make sure we're only using the 3 closest neighbours.
-        # neighbours = neighbours[0:3]
+        neighbours = neighbours[0:3]
 
         # ====== AGENT RULES ======
         self.follow_edges(neighbours)

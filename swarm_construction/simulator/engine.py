@@ -82,10 +82,6 @@ class SimulationEngine:
             for y in range(self._neighbourhood_idx[1]):
                 self._neighbourhoods[x][y] = np.array([])
 
-        # Assign each of the objects to a neighbourhood.
-        for obj in self._objects:
-            self.assign_neighbourhood(obj)
-
         # The number of updates we should run before drawing a frame.
         draw_frame_count = round(self._update_rate / self._draw_rate)
         count = 0
@@ -119,7 +115,7 @@ class SimulationEngine:
                 if event.key == pg.K_p:
                     self.pause = not self.pause
                 if event.key == pg.K_a:
-                    self.pause = True
+                    if not self.pause: return
                     self.analytics_func();
         
         if self.pause:
