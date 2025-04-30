@@ -227,6 +227,7 @@ class SimulationEngine:
         Args:
             neighbourhood_coords (tuple): (x,y) indices of neighbourhood.
         """
+        if not np.any(neighbourhood_coords): return np.array([])
         x, y = neighbourhood_coords
         max_x, max_y = self._neighbourhood_idx
         nearby = np.array([])

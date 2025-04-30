@@ -251,8 +251,12 @@ class SwarmConstructionSimulation:
         ana_suite.run_analytics()
 
     def main(self):
+
+        # For each pixel an agent travels, we update the sim twice.
+        update_rate = Agent.start_speed * 2
+
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=30, update_rate=200, analytics_func=self.run_analytics
+            "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
         )
         self.agents = []
 

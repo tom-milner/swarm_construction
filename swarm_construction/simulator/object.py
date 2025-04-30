@@ -143,7 +143,7 @@ class SimulationObject:
         # If we don't have a neighbourhood, assign one to us.
         if not np.any(self._neighbourhood):
             self._sim_engine.assign_neighbourhood(self)
-            
+
         # If we have no speed, no need to recalculate any movement stuff.
         if self.speed == 0: return
 
@@ -292,12 +292,12 @@ class SimulationObject:
 
             # Work out the distance from the current object.
             diff = np.subtract(self._pos, obj._pos)
-            dist = np.linalg.norm(diff)
+            dist_squared = diff[0]**2 + diff[1]**2
 
             # only neighbours within comms distance
-            if dist <= self._comms_radius:
+            if dist_squared <= self._comms_radius**2:
                 # Store object and distance in neighbours array.
-                entry = [obj, dist]
+                entry = [obj, math.sqrt(dist_squared)]
                 neighbours.append(entry)
 
         if len(neighbours) == 0:

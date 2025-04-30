@@ -11,9 +11,10 @@ class Agent(SimulationObject):
     Physics is provided by an underlying SimulationObject class.
     """
 
+    # Defaults
     radius: int = 10
     color: Colour = Colour.white
-    speed: int = 0
+    start_speed = 100
 
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
@@ -56,7 +57,6 @@ class Agent(SimulationObject):
         super().__init__(
             sim_engine,
             start_pos,
-            speed=self.speed,
             radius=self.radius,
             color=self.color,
             label=self.gradient,
@@ -200,13 +200,12 @@ class Agent(SimulationObject):
         # the constraints they were facing with small, low-power, low-compute robots, and asynchronous comms.
 
         # Their robots are constantly localising in the background. We only have one frame.
-        # Therefore, we just run the algorithm loads of times ('num_minimisations') to compute a good enough minimisation.
 
-        # Perform the "distributed trilateration" algorithm.
-        # Loop the algorithm until the calculated position stops changing per loop.
-        run_minimise = True
+        # Loop the localisation algorithm until the calculated position stops changing per neighbour.
+        # Once this happens 10 times and the position still isn't changing, we are localised (ish)
+        run_minimise = 0
         last_pos = pos
-        while (run_minimise):
+        while (run_minimise < 10):
             for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
@@ -241,7 +240,9 @@ class Agent(SimulationObject):
             # This would usually be linalg.norm, but we omit the sqrt to improve performance.
             dist = diff_from_last[0]**2 + diff_from_last[1]**2
             last_pos = pos
-            run_minimise =  dist > 1**2
+            threshold = 0.5
+            if dist < threshold**2: run_minimise+=1
+            else: run_minimise = 0
 
         # save our localised position
         self.local_pos = pos
@@ -379,7 +380,7 @@ class Agent(SimulationObject):
                 self.update_gradient(neighbours)
                 return
             # We might need to start edge following. Better check.
-            self.start_edge_following(fps, 100)
+            self.start_edge_following(fps, self.start_speed)
             return
 
     
@@ -397,7 +398,7 @@ class Agent(SimulationObject):
         self.update_gradient(neighbours)
 
         # If our gradient goes from 1 to 2, we have passed a seed robot.
-        if self.gradient == 2 and old_gradient == 1 and not self.passed_seed:
+        if self.gradient >= 2 and old_gradient == 1 and not self.passed_seed:
             self.passed_seed = True
 
         self.assemble_shape()
