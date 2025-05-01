@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            # radius * 2 * 10
+            radius * 2 * 10
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
@@ -193,6 +193,9 @@ class SimulationObject:
             )  # Black text
             text_rect = text_surface.get_rect(center=self._pos)
             self._sim_engine.surface.blit(text_surface, text_rect)
+
+    def fix_collision(self, collision):
+        self._pos = np.subtract(self._pos, collision[1])
 
     def check_collision(self, other_object):
         """Check if we have collided with another SimulationObject.

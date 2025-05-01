@@ -268,7 +268,7 @@ class SwarmConstructionSimulation:
         self.shape_area_proportion = 0.19
 
         self.place_shape("sheep.bmp")
-        self.place_agents(1000)
+        self.place_agents(500)
         
         self.sim.run()
 

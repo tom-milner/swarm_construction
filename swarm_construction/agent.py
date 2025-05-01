@@ -14,7 +14,7 @@ class Agent(SimulationObject):
     # Defaults
     radius: int = 10
     color: Colour = Colour.white
-    start_speed = 100
+    start_speed = 200
 
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
@@ -153,6 +153,12 @@ class Agent(SimulationObject):
         collision = self.check_collision(closest[0])
         if not collision[0]:
             # If we're not touching anything, do nothing.
+            return
+
+        # Don't orbit around agents that are moving, but reposition ourselves so that we're
+        # not colliding.
+        if closest[0].speed != 0:
+            self.fix_collision(collision)
             return
 
         # Orbit around the new neighbour.
