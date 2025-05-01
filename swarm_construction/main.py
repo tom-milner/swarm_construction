@@ -252,12 +252,11 @@ class SwarmConstructionSimulation:
 
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
-        self.target_shape = Agent.Shape(scaled_shape, bottom_left)
+        self.target_shape = Agent.Shape(scaled_shape, bottom_left, local_frame_centroids)
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
-        ana_suite.run_analytics()
-        self.target_shape = Agent.Shape(scaled_shape, bottom_left, local_frame_centroids)
+        ana_suite.run_analytics()     
 
     def get_islands(self, bmp_shape):
         """
@@ -283,15 +282,15 @@ class SwarmConstructionSimulation:
         # ======== debug =================
         # Convert grayscale to BGR so we can draw colored circles
         # Convert PIL image to grayscale NumPy array
-        img = np.array(bmp_shape.convert("L"))
-        img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        #img = np.array(bmp_shape.convert("L"))
+        #img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         # Draw red circles at centroids
-        for (x, y) in centroids:
-            cv2.circle(img_color, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
-        cv2.imshow("Centroids on Scaled Shape", img_color)
-        print("Press any key in the image window to continue...")
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #for (x, y) in centroids:
+        #    cv2.circle(img_color, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
+        #cv2.imshow("Centroids on Scaled Shape", img_color)
+        #print("Press any key in the image window to continue...")
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
         return centroids
 
@@ -306,7 +305,7 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.4 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
@@ -316,12 +315,7 @@ class SwarmConstructionSimulation:
 
         self.last_agent_time = self.sim.clock.get_time()
         self.agent_move_idx = -1
-
-        #self.sim.add_update(self.start_agents)
-
-        self.place_shape("sheep.bmp")
-        self.place_agents(300)
-        
+       
         self.sim.run()
 
 if __name__ == "__main__":

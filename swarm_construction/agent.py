@@ -72,6 +72,7 @@ class Agent(SimulationObject):
         self.bridge = False
         self.looped_updated = False
         self.passed_seed = False
+        self.bridge_updated = False
 
     def start_edge_following(self, fps, speed):
         """Start edge following by checking for a bunch of conditions
@@ -368,7 +369,7 @@ class Agent(SimulationObject):
 
         self.prev_inside_shape = inside_shape
     
-    def check_bridging(self, tolerance = 5):
+    def check_bridging(self, tolerance = 10):
         """
         Checks if self.local_pos lies within a given perpendicular distance (tolerance)
         from any line segment connecting two COMs, and that the closest point lies
@@ -452,29 +453,32 @@ class Agent(SimulationObject):
         # ain't localised, dont bridge
         if self.local_pos is None:
             return
-        # cheating, maybe? Don't bridge if we are in a new shape
-        if self.color is Color.orange:
-            return
+        # dont want to bridge inside!
+        
         # check if we have gone round -  there is no more space
         if self.looped < 2:
             self.check_if_looped()
             # no need to bridge yet
             return
+        # self.color = Colour.light_green
         # We can bridge, lets check if possible
         desired_COM = self.check_bridging(10)
-        if desired_COM is not None:
+        if desired_COM is not None and not self.bridge_updated:
+            self.bridge_updated = True
             # below this distance, we encourage bridging. Above, we discourage bridging
-            ideal_COM_distance = 30
+            ideal_COM_distance = 50
             # what is the average probability we should bridge
             nominal_bridging_probability = 0.2
             # calculate
             p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(desired_COM)) * nominal_bridging_probability * (self.looped-1))
-            # print(f"probability bridging at {self.local_pos}, probility: {p_bridging}")
+            print(f"probability bridging at {self.local_pos} with distance of {np.linalg.norm(desired_COM)}: {p_bridging}")
             if random.random() < p_bridging:
                 # print(f"we have bridged at local position {self.local_pos}, gobally at:{self._pos}")
                 # we are bridging, stop
-                self.color = Color.red
+                self.color = Colour.red
                 self.speed = 0
+        else:
+            self.bridge_updated = False
         return
 
     def check_if_looped(self):
@@ -483,7 +487,7 @@ class Agent(SimulationObject):
             int: The number of times the agent has passed the negitive x axis.
         """
         # if we are directly left to seeds
-        if self.local_pos[1]**2 < 0.5 and self.local_pos[0] < 0:
+        if self.local_pos[1]**2 < 2 and self.local_pos[0] < 0:
             # only trigger once
             if not self.looped_updated:
                 self.looped += 1
@@ -504,8 +508,9 @@ class Agent(SimulationObject):
         
         # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
         if self.speed == 0:
-            # if we are briding, we dont need to do anything
+            # if we are briding, 
             if self.bridge:
+                # do nothing.... for now!
                 return
             if self.gradient is None:
                 # we are at start of sim, need to initalise gradients
