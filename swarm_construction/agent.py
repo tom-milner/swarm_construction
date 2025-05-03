@@ -86,8 +86,8 @@ class Agent(SimulationObject):
         if random.random() > p:
             # if we are unlucky, we dont edge follow
             return
-        # get the nearest neighbours
-        neighbours = self.get_nearest_neighbours()
+        # get the nearest non-localised neighbours
+        neighbours = [n for n in self.get_nearest_neighbours() if n[0].local_pos is None]
         if len(neighbours) == 0:
             return
         # get gradients of neighbours
