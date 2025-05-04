@@ -50,6 +50,9 @@ class SimulationEngine:
 
         self.analytics_func = analytics_func
 
+        # Name of the shape file for use in analytics files
+        self.shape_name = None
+
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
 
@@ -116,7 +119,7 @@ class SimulationEngine:
                     self.pause = not self.pause
                 if event.key == pg.K_a:
                     if not self.pause: return
-                    self.analytics_func();
+                    self.analytics_func()
         
         if self.pause:
             return
