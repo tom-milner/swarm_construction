@@ -73,6 +73,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    mode=self.mode,
                     gradient = 0 if i==0 else 1
                 )
             )
@@ -109,6 +110,7 @@ class SwarmConstructionSimulation:
                     pos,
                     color=Colour.white,
                     shape=self.target_shape,
+                    mode=self.mode
                 )
                 for pos in conn_pos
             ]
@@ -167,6 +169,7 @@ class SwarmConstructionSimulation:
                         pos,
                         color,
                         shape=self.target_shape,
+                        mode=self.mode
                     )
                 )
                 num_agents -= 1
@@ -233,9 +236,15 @@ class SwarmConstructionSimulation:
         # of each colour
         colour_count = np.array(np.unique(shape_array, return_counts=True)).T
         colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
+        white_loc_row, white_loc_col = np.where(colour_count == 255)
         self.p_white_agents = (
-            colour_count[np.any(colour_count == 255), 1] / np.sum(colour_count[:, 1])
-        )[0, 1]
+            colour_count[white_loc_row, 1] / np.sum(colour_count[:, 1])
+        )
+
+        if (self.p_white_agents == 1):
+            self.mode = 'monochrome'
+        else:
+            self.mode = 'greyscale'
 
         # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
@@ -285,10 +294,10 @@ class SwarmConstructionSimulation:
         self.seed_origin = [0.15 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.1
+        self.shape_area_proportion = 0.15
 
-        self.place_shape("gs_test.bmp")
-        self.place_agents(100)
+        self.place_shape("gs_test3.bmp")
+        self.place_agents(300)
         
         self.sim.run()
 

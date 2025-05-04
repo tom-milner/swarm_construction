@@ -30,6 +30,7 @@ class Agent(SimulationObject):
         color = Colour.white,
         local_pos=None,
         shape: Shape = None,
+        mode='monochrome',
         gradient=None
     ):
         """Initialise the agent.
@@ -46,6 +47,7 @@ class Agent(SimulationObject):
         self.color = Colour.white
         # we dont know what the gradient is yet.
         self.gradient = gradient
+        self.mode = mode
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
@@ -296,7 +298,8 @@ class Agent(SimulationObject):
             return False
 
         # Yellow means we're in the bounding box!
-        #self.color = Color.yellow
+        if self.mode == 'monochrome':
+            self.color = Colour.yellow
         # We're in the bounding box!
 
         # Get the raw pixels from the shape, and get the color of the pixel at our mapped position.
@@ -312,7 +315,8 @@ class Agent(SimulationObject):
             return False
 
         # Woohoo! We're in the shape! Turn orange to celebrate.
-        #self.color = Color.orange
+        if self.mode == 'monochrome':
+            self.color = Colour.orange
         return True
 
     def update_gradient(self, neighbours):
@@ -375,14 +379,17 @@ class Agent(SimulationObject):
             and inside_shape
             and orb_agent.speed == 0
             and self.gradient <= orb_agent.gradient
+            and self.color_flag == orb_agent.color_flag
         ):
             self.speed = 0
-            self.color = Colour.orange
+            if self.mode == 'monochrome':
+                self.color = Colour.orange
 
         # Condition 2: We are about to exit the shape.
         if not inside_shape and self.prev_inside_shape:
             self.speed = 0
-            self.color = Colour.yellow
+            if self.mode == 'monochrome':
+                self.color = Colour.yellow
 
         self.prev_inside_shape = inside_shape
 
