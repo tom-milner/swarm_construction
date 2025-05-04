@@ -201,6 +201,7 @@ class SwarmConstructionSimulation:
         goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
+        self.sim.shape_name = shape_file
         shape = Image.open(shape_file)
         init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
 
@@ -249,7 +250,9 @@ class SwarmConstructionSimulation:
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
-        ana_suite.run_analytics()
+        # Pass in True for figures to save as .eps
+        # False for no saving
+        ana_suite.run_analytics(True)
 
     def main(self):
 
