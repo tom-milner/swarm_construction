@@ -391,10 +391,7 @@ class Agent(SimulationObject):
 
     
         # Get closest neighbours.
-        neighbours = self.get_nearest_neighbours()
-
-        # Make sure we're only using the 3 closest neighbours.
-        neighbours = neighbours[0:3]
+        neighbours = self.get_nearest_neighbours(3)
 
         # ====== AGENT RULES ======
         self.follow_edges(neighbours)

@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            radius * 2 * 10
+            radius * 2 * 5
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
@@ -274,8 +274,11 @@ class SimulationObject:
         # The _move_orbit function does everything else!
         self._move_orbit(0)
 
-    def get_nearest_neighbours(self):
+    def get_nearest_neighbours(self, n=None):
         """Get a sorted list of the SimulationObjects nearest to this object in the Simulation, along with their distances.
+
+         Args:
+            n (int): Number of neighbours to return. Default = all neighbours.
 
         Returns:
             list(tuple): The nearest SimulationObjects in the simulation, along with their distances: (neighbour, distance)
@@ -307,7 +310,12 @@ class SimulationObject:
 
         # Turn neighbours into numpy array, and sort based on distance.
         neighbours = np.array(neighbours)
-        return neighbours[neighbours[:, 1].argsort()]
+        neighbours = neighbours[neighbours[:, 1].argsort()]
+
+        # Only return the closest n objects.
+        if n is not None: neighbours = neighbours[0:n]
+        
+        return neighbours
 
     def get_orbit_object(self):
         """Return the object we're currently orbiting.
