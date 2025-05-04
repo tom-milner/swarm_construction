@@ -81,15 +81,14 @@ class Agent(SimulationObject):
         if self.local_pos is not None:
             # If we're localised, we can't edge follow.
             return
-        average_start_time = 2
+        average_start_time = 1
         p = 1 / (average_start_time * (fps + 1))
         if random.random() > p:
             # if we are unlucky, we dont edge follow
             return
         # get the nearest non-localised neighbours
         neighbours = [n for n in self.get_nearest_neighbours() if n[0].local_pos is None]
-        if len(neighbours) == 0:
-            return
+
         # get gradients of neighbours
         gradients = [neighbour[0].gradient for neighbour in neighbours]
         speeds = [neighbour[0].speed for neighbour in neighbours]
