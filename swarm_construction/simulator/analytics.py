@@ -79,7 +79,7 @@ class Analytics:
         ax.set_title("Agent Local Position")
 
         for idx, pos in enumerate(self.agent_positions[:, 0]):
-            if self.agents[idx].seed_robot:
+            if self.agents[idx].is_seed:
                 # distinguish seeds 
                 outline = "green"
                 fill = True
@@ -106,7 +106,7 @@ class Analytics:
         ax.set_title("Agent Actual Position")
 
         for idx, pos in enumerate(self.agent_positions[:, 1]):
-            if self.agents[idx].seed_robot:
+            if self.agents[idx].is_seed:
                 # distinguish seeds
                 outline = "green"
                 fill = True
@@ -132,7 +132,7 @@ class Analytics:
         ax2.set_title("Agent Actual Position")
 
         for idx, pos in enumerate(self.agent_positions):
-            if self.agents[idx].seed_robot:
+            if self.agents[idx].is_seed:
                 outline = "green"
                 fill = True
                 color = "green"
@@ -190,7 +190,7 @@ class Analytics:
         """
         fig, ax = plt.subplots()
         for idx, pos in enumerate(self.agent_positions):
-            if self.agents[idx].seed_robot:
+            if self.agents[idx].is_seed:
                 outline = "green"
                 fill = True
                 color = "green"

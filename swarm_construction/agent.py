@@ -3,6 +3,15 @@ from .simulator.colors import Colour
 from .simulator.engine import SimulationEngine
 import numpy as np
 import random
+from enum import Enum
+
+
+class AgentState(Enum):
+    IDLE = (1,)
+    MOVING_OUTSIDE_SEED = (2,)
+    MOVING_OUTSIDE_SHAPE = (3,)
+    MOVING_INSIDE_SHAPE = (4,)
+    LOCALISED = 5
 
 
 class Agent(SimulationObject):
@@ -29,7 +38,7 @@ class Agent(SimulationObject):
         start_pos,
         local_pos=None,
         shape: Shape = None,
-        gradient=None
+        gradient=None,
     ):
         """Initialise the agent.
         Purposefully keeping the input params minimal, so that all instances of this agent class are similar - trying to keep it faithful to the paper!
@@ -40,18 +49,20 @@ class Agent(SimulationObject):
             local_pos ([int,int], optional): The position of the agent in the swarm. This is used to provide seed agents with their initial positions. Defaults to None.
         """
 
-        # If we've provided this agent with a position in the swarm, it is a seed robot.
-        self.seed_robot = False
         self.color = Colour.white
-        # we dont know what the gradient is yet.
         self.gradient = gradient
+        self.speed = 0
+        self.local_pos = local_pos
+
+        self.shape = shape
+        self.is_seed = False
+        self.state = AgentState.IDLE
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
-            self.speed = 0
+            self.state = AgentState.LOCALISED
             self.color = Colour.light_green
-            if self.gradient == None: self.gradient = 1
-            self.seed_robot = True
+            self.is_seed = True
 
         # Initialise the underlying simulation object.
         super().__init__(
@@ -62,36 +73,21 @@ class Agent(SimulationObject):
             label=self.gradient,
         )
 
-        # Initialise agent-specific variables.
-        self.local_pos = local_pos
-        self.shape = shape
-        self.prev_inside_shape = False
-        self.passed_seed = False
-
-    def start_edge_following(self, fps, speed):
+    def start_edge_following(self, fps, neighbours):
         """Start edge following by checking for a bunch of conditions
 
         If the conditions are passed, the agent is set to orbit the neighbour it is
         touching with the highest gradient.
         Args:
             fps (int): the sims current frame rate"""
-        if self.seed_robot:
-            # Don't allow seed robots to edge follow.
-            return
-        if self.local_pos is not None:
-            # If we're localised, we can't edge follow.
-            return
-        average_start_time = 1
-        p = 1 / (average_start_time * (fps + 1))
-        if random.random() > p:
-            # if we are unlucky, we dont edge follow
-            return
+
         # get the nearest non-localised neighbours
-        neighbours = [n for n in self.get_nearest_neighbours() if n[0].local_pos is None]
-        if len(neighbours) == 0: 
-            self.speed = speed
-            return
-        
+        neighbours = [n for n in neighbours if n[0].local_pos is None]
+
+        # If there are no neighbours, start.
+        if len(neighbours) == 0:
+            return True
+
         # get gradients of neighbours
         gradients = [neighbour[0].gradient for neighbour in neighbours]
         speeds = [neighbour[0].speed for neighbour in neighbours]
@@ -99,10 +95,10 @@ class Agent(SimulationObject):
             gradient is not None and gradient > self.gradient for gradient in gradients
         ):
             # there are neighbours with a higher gradient than us
-            return
+            return False
         if any(speeds > 0 for speeds in speeds):
             # there are neighbours moving
-            return
+            return False
 
         equal_grad_neighbours = 0
         max_grad_neighbour = neighbours[0]
@@ -123,15 +119,12 @@ class Agent(SimulationObject):
         # it is likely that we will get trapped between them in a cycle
         # of collisions and changing orbit objects if we tried to start edge following
         if equal_grad_neighbours > 1:
-            return
+            return False
 
-        # This stops the top right agent flying away - it never collided with other agents
-        # so never had an agent to orbit
-        # We manually assign the initial orbit object as the neighbour with the highest
-        # gradient that is stationary
         if max_grad_neighbour[0].speed == 0:
             self.set_orbit_object(max_grad_neighbour[0])
-        self.speed = speed
+
+        return True
 
     def follow_edges(self, neighbours):
         """Move round the edges of the provided neighbours.
@@ -140,12 +133,6 @@ class Agent(SimulationObject):
         Args:
             neighbours (list(tuple)): List of tuples of neighbours and their distances (neighbour, distance) sorted by distance.
         """
-
-        if self.seed_robot:
-            return
-
-        if self.speed == 0:
-            return
 
         if len(neighbours) == 0:
             return
@@ -156,10 +143,9 @@ class Agent(SimulationObject):
         if not collision[0]:
             # If we're not touching anything, do nothing.
             return
-
-        # Don't orbit around agents that are moving, but reposition ourselves so that we're
-        # not colliding.
-        if closest[0].speed != 0:
+    
+        # Don't orbit around agents that are moving.
+        if closest[0].speed != 0:    
             self.fix_collision(collision)
             return
 
@@ -174,7 +160,7 @@ class Agent(SimulationObject):
         """
 
         # Don't allow seed robots to relocalise.
-        if self.seed_robot:
+        if self.is_seed:
             return
 
         # No need to re-localise if we're stationary.
@@ -182,12 +168,10 @@ class Agent(SimulationObject):
         if self.speed == 0:
             return
 
-        # If we haven't passed the seed, don't try and localise yet.
-        if not self.passed_seed:
-            return
-
         # Get the neighbours that are already localised.
-        localised_neighbours = [n for n in neighbours if n[0].local_pos is not None]
+        localised_neighbours = [
+            n for n in neighbours if n[0].state == AgentState.LOCALISED
+        ]
 
         # If we have < 3 localised neighbours, we can't localise ourselves
         if len(localised_neighbours) < 3:
@@ -213,7 +197,7 @@ class Agent(SimulationObject):
         # Once this happens 10 times and the position still isn't changing, we are localised (ish)
         run_minimise = 0
         last_pos = pos
-        while (run_minimise < 10):
+        while run_minimise < 10:
             for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
@@ -244,18 +228,18 @@ class Agent(SimulationObject):
 
             # If our new position is different from our last position, we haven't minimised,
             # so run the localisation again.
-            diff_from_last = np.subtract(pos,last_pos)
+            diff_from_last = np.subtract(pos, last_pos)
             # This would usually be linalg.norm, but we omit the sqrt to improve performance.
-            dist = diff_from_last[0]**2 + diff_from_last[1]**2
+            dist = diff_from_last[0] ** 2 + diff_from_last[1] ** 2
             last_pos = pos
             threshold = 0.5
-            if dist < threshold**2: run_minimise+=1
-            else: run_minimise = 0
+            if dist < threshold**2:
+                run_minimise += 1
+            else:
+                run_minimise = 0
 
         # save our localised position
         self.local_pos = pos
-
-        pass
 
     def is_inside_shape(self) -> bool:
         """Check if our localised position (local_pos) is inside the shape (target_shape)
@@ -265,9 +249,6 @@ class Agent(SimulationObject):
         """
         if self.shape is None:
             return
-
-        # Default color if we're not inside the shape but are trying to localise.
-        self.color = Colour.light_blue
 
         # Can only see if we're inside the shape if we're localised.
         if self.local_pos is None:
@@ -355,20 +336,92 @@ class Agent(SimulationObject):
         inside_shape = self.is_inside_shape()
 
         if (
-            self.prev_inside_shape
+            orb_agent is not None
+            and orb_agent.state == AgentState.LOCALISED
             and inside_shape
-            and orb_agent.speed == 0
             and self.gradient <= orb_agent.gradient
         ):
-            self.speed = 0
-            self.color = Colour.orange
+            return True
 
         # Condition 2: We are about to exit the shape.
-        if not inside_shape and self.prev_inside_shape:
-            self.speed = 0
-            self.color = Colour.yellow
+        if not inside_shape:
+            return True
 
-        self.prev_inside_shape = inside_shape
+        return False
+
+    def state_idle(self, fps):
+        self.speed = 0
+        self.color = Colour.white
+
+        # Initialise gradients if we need to.
+        if self.gradient == None:
+            neighbours = self.get_nearest_neighbours()
+            self.update_gradient(neighbours)
+            return
+
+        # If we're unlucky, we don't get to start.
+        average_start_time = 1
+        p = 1 / (average_start_time * (fps + 1))
+        if random.random() > p:
+            return False
+
+        # We might need to start edge following. Better check.
+        neighbours = self.get_nearest_neighbours()
+        start = self.start_edge_following(fps, neighbours)
+        if not start:
+            return
+
+        # Start!
+        self.state = AgentState.MOVING_OUTSIDE_SEED
+        self.state_moving_outside_seed(fps)
+
+    def state_moving_outside_seed(self, fps):
+        self.speed = self.start_speed
+        self.color = Colour.white
+
+        # Get closest neighbours.
+        neighbours = self.get_nearest_neighbours(3)
+        self.follow_edges(neighbours)
+        self.update_gradient(neighbours)
+
+        # If we touch a localised agent, move to the next state.
+        if neighbours[0][0].state == AgentState.LOCALISED:
+            self.state = AgentState.MOVING_OUTSIDE_SHAPE
+
+    def state_moving_outside_shape(self, fps):
+        self.color = Colour.light_blue
+        neighbours = self.get_nearest_neighbours(3)
+
+        self.follow_edges(neighbours)
+        self.localise(neighbours)
+        self.update_gradient(neighbours)
+
+        # If we touch an unlocalised agent, we're outside the seeds.
+        if neighbours[0][0].state == AgentState.IDLE:
+            self.state = AgentState.MOVING_OUTSIDE_SEED
+            return
+
+        
+        if self.is_inside_shape():
+            self.state = AgentState.MOVING_INSIDE_SHAPE
+            return
+
+    def state_moving_inside_shape(self, fps):
+        self.color = Colour.orange
+        neighbours = self.get_nearest_neighbours(3)
+        self.follow_edges(neighbours)
+        self.localise(neighbours)
+        self.update_gradient(neighbours)
+
+        if self.assemble_shape():
+            self.state = AgentState.LOCALISED
+            self.speed=0
+            return
+
+    def state_localised(self, fps):
+        self.speed = 0
+        if not self.is_seed:
+            self.color = Colour.orange
 
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
@@ -376,34 +429,19 @@ class Agent(SimulationObject):
         Args:
             fps (float): FPS of the last frame (provided by pygame).
         """
-        
+
         # Update the underlying SimulationObject.
         super().update(fps)
-        
-        # NOTE: If this isn't here, every agent finds it nearest neighbours, which atm takes a longggg time.
-        if self.speed == 0:
-            if self.gradient is None:
-                # we are at start of sim, need to initalise gradients
-                neighbours = self.get_nearest_neighbours()
-                self.update_gradient(neighbours)
-                return
-            # We might need to start edge following. Better check.
-            self.start_edge_following(fps, self.start_speed)
-            return
 
-    
-        # Get closest neighbours.
-        neighbours = self.get_nearest_neighbours(3)
+        match self.state:
+            case AgentState.IDLE:
+                self.state_idle(fps)
+            case AgentState.MOVING_OUTSIDE_SEED:
+                self.state_moving_outside_seed(fps)
+            case AgentState.MOVING_OUTSIDE_SHAPE:
+                self.state_moving_outside_shape(fps)
+            case AgentState.MOVING_INSIDE_SHAPE:
+                self.state_moving_inside_shape(fps)
+            case AgentState.LOCALISED:
+                self.state_localised(fps)
 
-        # ====== AGENT RULES ======
-        self.follow_edges(neighbours)
-        self.localise(neighbours)
-
-        old_gradient = self.gradient
-        self.update_gradient(neighbours)
-
-        # If our gradient goes from 1 to 2, we have passed a seed robot.
-        if self.gradient >= 2 and old_gradient == 1 and not self.passed_seed:
-            self.passed_seed = True
-
-        self.assemble_shape()
