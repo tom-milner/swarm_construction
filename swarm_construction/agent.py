@@ -88,7 +88,10 @@ class Agent(SimulationObject):
             return
         # get the nearest non-localised neighbours
         neighbours = [n for n in self.get_nearest_neighbours() if n[0].local_pos is None]
-
+        if len(neighbours) == 0: 
+            self.speed = speed
+            return
+        
         # get gradients of neighbours
         gradients = [neighbour[0].gradient for neighbour in neighbours]
         speeds = [neighbour[0].speed for neighbour in neighbours]
