@@ -235,8 +235,8 @@ class Agent(SimulationObject):
                 # For our simulation, this just slows down the minimisation, so we're not doing it.
 
                 # move towards new position
-                # pos_diff = np.subtract(pos, new_pos) / 4
-                pos_diff = np.subtract(pos, new_pos)
+                pos_diff = np.subtract(pos, new_pos) / 4
+                # pos_diff = np.subtract(pos, new_pos)
 
                 pos = np.subtract(pos, pos_diff)
 
