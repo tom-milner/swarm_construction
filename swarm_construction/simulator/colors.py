@@ -1,4 +1,4 @@
-class Color:
+class Colour:
     """A simple class for storing RGB color values."""
 
     red = (199, 0, 57)

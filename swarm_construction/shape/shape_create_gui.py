@@ -7,8 +7,8 @@ root = tk.Tk()
 root.title("Bitmap shape creation")
 
 # canvas size
-SHAPE_ROWS = 10
-SHAPE_COLS = 10
+SHAPE_ROWS = 20
+SHAPE_COLS = 30
 shape_state = np.zeros((SHAPE_ROWS, SHAPE_COLS), dtype=int)
 
 

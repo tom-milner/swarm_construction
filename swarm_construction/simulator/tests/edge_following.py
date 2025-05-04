@@ -1,6 +1,6 @@
 from swarm_construction.simulator.object import SimulationObject
 from swarm_construction.simulator.engine import SimulationEngine
-from swarm_construction.simulator.colors import Color
+from swarm_construction.simulator.colors import Colour
 import math
 import numpy as np
 
@@ -58,7 +58,7 @@ class Test:
                     self.sim,
                     pos=np.add(start, pos),
                     radius=radius,
-                    color=Color.light_green,
+                    color=Colour.light_green,
                 )
                 cluster.append(a)
         i += 1
@@ -71,7 +71,7 @@ class Test:
                 self.sim,
                 pos=np.add(start, pos),
                 radius=radius,
-                color=Color.light_green,
+                color=Colour.light_green,
             )
             cluster.append(a)
             i += 1

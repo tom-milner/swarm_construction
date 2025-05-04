@@ -1,6 +1,6 @@
 from swarm_construction.simulator.object import SimulationObject, OrbitDirection
 from swarm_construction.simulator.engine import SimulationEngine
-from swarm_construction.simulator.colors import Color
+from swarm_construction.simulator.colors import Colour
 import math
 import numpy as np
 
@@ -18,16 +18,16 @@ class Test:
         radius = 30
 
         sun = SimulationObject(
-            self.sim, [middle, middle], radius=radius * 2, color=Color.orange
+            self.sim, [middle, middle], radius=radius * 2, color=Colour.orange
         )
 
         planet = SimulationObject(
-            self.sim, radius=radius, speed=100, color=Color.yellow
+            self.sim, radius=radius, speed=100, color=Colour.yellow
         )
         planet.set_orbit_object(sun, orbit_direction=OrbitDirection.ANTI_CLOCKWISE)
 
         moon = SimulationObject(
-            self.sim, radius=radius * 0.5, speed=150, color=Color.light_green
+            self.sim, radius=radius * 0.5, speed=150, color=Colour.light_green
         )
         moon.set_orbit_object(planet)
 

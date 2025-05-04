@@ -1,7 +1,8 @@
 from .simulator.engine import SimulationEngine
-from .simulator.colors import Color
+from .simulator.colors import Colour
 from .agent import Agent
 from .simulator.shape import SimulationShape
+from .simulator.analytics import Analytics
 
 import math
 import numpy as np
@@ -23,10 +24,9 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        # Make area of agents ever so slightly more than the shape area.
+        
         window_area = window_size**2
-        # made agent area bigger for quicker testing - lazy
-        total_agent_area = window_area * (self.shape_area_proportion + 0.02)
+        total_agent_area = window_area * (self.shape_area_proportion + 0.005)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -73,6 +73,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    gradient = 0 if i==0 else 1
                 )
             )
 
@@ -106,7 +107,7 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
-                    color=Color.white,
+                    color=Colour.white,
                     shape=self.target_shape,
                 )
                 for pos in conn_pos
@@ -138,11 +139,12 @@ class SwarmConstructionSimulation:
         cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
-        for i in range(side_len):
+        aspect_ratio = 4/3
+        for i in range(round(side_len / aspect_ratio)):
             # Every other row is nudged forwards, so the circles fit snuggly.
             x_offset = 0 if i % 2 == 0 else dx
 
-            for j in range(side_len):
+            for j in range(round(side_len * aspect_ratio)):
 
                 # If all the agents have been generated, we're done.
                 if num_agents <= 0:
@@ -154,9 +156,9 @@ class SwarmConstructionSimulation:
 
                 # randomly make roughly the right proportion of agents each colour
                 if random.random() < self.p_white_agents:
-                    color = Color.white
+                    color = Colour.white
                 else:
-                    color = Color.grey
+                    color = Colour.grey
 
                 # Generate the agent.
                 self.agents.append(
@@ -265,34 +267,29 @@ class SwarmConstructionSimulation:
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
-    """    def start_agents(self, fps):
-            self.last_agent_time += self.sim.clock.get_rawtime()
-            interval = 1
-            if (self.last_agent_time / 1000) > interval:
-                self.agents[self.agent_move_idx].speed = 100
-                self.last_agent_time = 0
-                self.agent_move_idx -= 1"""
+    def run_analytics(self):
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
 
     def main(self):
+
+        # For each pixel an agent travels, we update the sim twice.
+        update_rate = Agent.start_speed * 4
+
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=10, update_rate=100
+            "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
         )
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.15 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
         self.place_shape("gs_test.bmp")
         self.place_agents(100)
-
-        self.last_agent_time = self.sim.clock.get_time()
-        self.agent_move_idx = -1
-
-        # self.sim.add_update(self.start_agents)
-
+        
         self.sim.run()
 
 

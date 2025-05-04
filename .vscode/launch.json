@@ -12,6 +12,18 @@
       "module": "swarm_construction.main"
     },
     {
+      "name": "All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.tests.all"
+    },
+    {
+      "name": "All Simulator Engine Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.simulator.tests.all"
+    },
+    {
       "name": "Movement Test",
       "type": "debugpy",
       "request": "launch",
@@ -39,7 +51,7 @@
       "name": "Simple Agent Test",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.simple_agent_rules"
+      "module": "swarm_construction.tests.simple_agent_rules"
     },
     {
       "name": "Shape creation",
@@ -63,13 +75,25 @@
       "name": "Localisation",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.localisation"
+      "module": "swarm_construction.tests.localisation"
     },
     {
       "name": "Shape Awareness",
       "type": "debugpy",
       "request": "launch",
-      "module": "tests.shape_awareness"
+      "module": "swarm_construction.tests.shape_awareness"
+    },
+    {
+      "name": "Spatial Hashing",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.simulator.tests.spatial_hashing"
+    },{
+      "name": "Profile Simulation",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "cProfile",
+      "args": "-s tottime -o profile_dump -m swarm_construction.main"
     }
   ]
 }
