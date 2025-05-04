@@ -224,7 +224,7 @@ class SwarmConstructionSimulation:
         # This flips the shape, may need to be removed if we change how we generate shapes
         # NOTE not required when using shape_create_gui to make bmp file!
         # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
-        scaled_shape.save("scaled_shape_test.bmp")
+        # scaled_shape.save("scaled_shape_test.bmp")
 
         # converts image to numpy array
         shape_array = np.array(scaled_shape)

@@ -108,13 +108,12 @@ class Agent(SimulationObject):
         
         # get gradients of neighbours
         gradients = [neighbour[0].gradient for neighbour in neighbours]
-        speeds = [neighbour[0].speed for neighbour in neighbours]
         if any(
             gradient is not None and gradient > self.gradient for gradient in gradients
         ):
             # there are neighbours with a higher gradient than us
             return
-        if any(speeds > 0 for speeds in speeds):
+        if any(n[0].speed > 0 and n[1] < Agent.radius * 2 * 4 for n in neighbours):
             # there are neighbours moving
             return
 
@@ -170,12 +169,17 @@ class Agent(SimulationObject):
         if not collision[0]:
             # If we're not touching anything, do nothing.
             return
+        self.fix_collision(collision)
 
-        # Don't orbit around agents that are moving, but reposition ourselves so that we're
-        # not colliding.
+        # Don't orbit around agents that are moving
         if closest[0].speed != 0:
-            self.fix_collision(collision)
             return
+        
+        # If the agent is stopped, but not localised, then it is still in the cluster. This means we have
+        # gone all the way round without stopping. Thus, reset localisation.
+        if not all(closest[0].local_pos) and self.passed_seed:
+            self.local_pos = [None, None]
+            self.passed_seed = False
 
         # Orbit around the new neighbour.
         self.set_orbit_object(closest[0])
