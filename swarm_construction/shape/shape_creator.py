@@ -16,7 +16,7 @@ def toggle_pixel(event, row, col):
     # Get the clicked pixel
     pixel = event.widget
     # Toggle its state and background color
-    if shape_state[row][col] == 1:
+    if shape_state[row][col] == 255:
         shape_state[row][col] = 0
         pixel.config(bg="black")
     else:
