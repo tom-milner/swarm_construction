@@ -70,7 +70,7 @@ class Test:
                 seed_pos[i],
                 local_pos=local_pos[i],
                 shape=self.target_shape,
-                gradient= 0 if i==0 else 1
+                gradient=0 if i == 0 else 1,
             )
 
         # Return the positions of the seeds.
@@ -151,15 +151,17 @@ class Test:
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
         self.target_shape = Agent.Shape(scaled_shape, bottom_left)
-    
+
     def run_analytics(self):
-            ana_suite = Analytics(self.sim, self.seed_origin)
-            ana_suite.run_analytics()
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
 
     def run(self):
 
         # Setup the simulation
-        self.sim = SimulationEngine("Localisation Test", 800, analytics_func=self.run_analytics)
+        self.sim = SimulationEngine(
+            "Localisation Test", 800, analytics_func=self.run_analytics
+        )
         # origin of the seed agents
         self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
 

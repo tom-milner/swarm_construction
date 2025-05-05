@@ -23,7 +23,7 @@ def toggle_pixel(event, row, col):
     # Get the clicked pixel
     pixel = event.widget
     # Toggle its state and background color
-    # clicking rotates through colours 
+    # clicking rotates through colours
     if shape_state[row][col] == 127:
         shape_state[row][col] = 0
         pixel.config(bg="black")
@@ -39,7 +39,7 @@ def save_bitmap(shape_state):
     """saves the pixel canvas as a bitmap image
 
     Args:
-        shape_state (2D array): array of pixel colours 
+        shape_state (2D array): array of pixel colours
     """
     # Find rows, cols where white or grey pixels exist
     rows = np.any(shape_state != 0, axis=1)
@@ -50,7 +50,7 @@ def save_bitmap(shape_state):
     col_start, col_end = np.where(cols)[0][[0, -1]]
 
     # remove rows, cols outside 'bounding box' for slightly nicer bmps
-    shape_state = shape_state[row_start:row_end+1, col_start:col_end+1]
+    shape_state = shape_state[row_start : row_end + 1, col_start : col_end + 1]
     crop_rows, crop_cols = shape_state.shape
 
     # Create a new image (8-bit greyscale mode)

@@ -25,7 +25,6 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        
         window_area = window_size**2
         total_agent_area = window_area * (self.shape_area_proportion + 0.005)
         agent_area = total_agent_area / num_agents
@@ -75,11 +74,11 @@ class SwarmConstructionSimulation:
                     local_pos=local_pos[i],
                     shape=self.target_shape,
                     mode=self.mode,
-                    gradient = 0 if i==0 else 1
+                    gradient=0 if i == 0 else 1,
                 )
             )
         self.agents[-1].is_bottom_seed = True
-        
+
         # Return the positions of the seeds.
         return seed_pos
 
@@ -101,7 +100,7 @@ class SwarmConstructionSimulation:
         # Place the connector agents underneath the origin agent.
         dx = column_spacing
         dy = line_spacing
-        conn_deltas = np.array([[-dx, dy], [dx, dy],[0, 2*dy], [-2*dx, 2*dy]])
+        conn_deltas = np.array([[-dx, dy], [dx, dy], [0, 2 * dy], [-2 * dx, 2 * dy]])
         conn_pos = np.add(conn_deltas, origin_agent)
 
         # Generate the connecting agents and add them to the simulation.
@@ -112,7 +111,7 @@ class SwarmConstructionSimulation:
                     pos,
                     color=Colour.white,
                     shape=self.target_shape,
-                    mode=self.mode
+                    mode=self.mode,
                 )
                 for pos in conn_pos
             ]
@@ -143,7 +142,7 @@ class SwarmConstructionSimulation:
         cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
-        aspect_ratio = 4/3
+        aspect_ratio = 4 / 3
         for i in range(round(side_len / aspect_ratio)):
             # Every other row is nudged forwards, so the circles fit snuggly.
             x_offset = 0 if i % 2 == 0 else dx
@@ -166,13 +165,7 @@ class SwarmConstructionSimulation:
 
                 # Generate the agent.
                 self.agents.append(
-                    Agent(
-                        self.sim,
-                        pos,
-                        color,
-                        shape=self.target_shape,
-                        mode=self.mode
-                    )
+                    Agent(self.sim, pos, color, shape=self.target_shape, mode=self.mode)
                 )
                 num_agents -= 1
 
@@ -240,14 +233,14 @@ class SwarmConstructionSimulation:
         colour_count = np.array(np.unique(shape_array, return_counts=True)).T
         colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
         white_loc_row, white_loc_col = np.where(colour_count == 255)
-        self.p_white_agents = (
-            colour_count[white_loc_row, 1] / np.sum(colour_count[:, 1])
+        self.p_white_agents = colour_count[white_loc_row, 1] / np.sum(
+            colour_count[:, 1]
         )
 
-        if (self.p_white_agents == 1):
-            self.mode = 'monochrome'
+        if self.p_white_agents == 1:
+            self.mode = "monochrome"
         else:
-            self.mode = 'greyscale'
+            self.mode = "greyscale"
 
         # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
@@ -277,7 +270,10 @@ class SwarmConstructionSimulation:
 
         # find the islands in the shape
         centroids = self.get_islands(scaled_shape)
-        local_frame_centroids = [[COM[0] - bottom_left[0],shape_array.shape[0] - bottom_left[1] - COM[1]] for COM in centroids]
+        local_frame_centroids = [
+            [COM[0] - bottom_left[0], shape_array.shape[0] - bottom_left[1] - COM[1]]
+            for COM in centroids
+        ]
 
         print(centroids)
         print(bottom_left)
@@ -285,7 +281,9 @@ class SwarmConstructionSimulation:
 
         # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
         # agent access to the scaled_shape and the coordinates of the bottom left pixel.
-        self.target_shape = Agent.Shape(scaled_shape, bottom_left, local_frame_centroids)
+        self.target_shape = Agent.Shape(
+            scaled_shape, bottom_left, local_frame_centroids
+        )
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
@@ -308,7 +306,7 @@ class SwarmConstructionSimulation:
 
         centroids = []
         for label in range(1, num_labels):  # skip label 0 (background)
-            mask = (labels_im == label)
+            mask = labels_im == label
             ys, xs = np.where(mask)
             x_center = np.mean(xs)
             y_center = np.mean(ys)
@@ -317,15 +315,15 @@ class SwarmConstructionSimulation:
         # ======== debug =================
         # Convert grayscale to BGR so we can draw colored circles
         # Convert PIL image to grayscale NumPy array
-        #img = np.array(bmp_shape.convert("L"))
-        #img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        # img = np.array(bmp_shape.convert("L"))
+        # img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         # Draw red circles at centroids
-        #for (x, y) in centroids:
+        # for (x, y) in centroids:
         #    cv2.circle(img_color, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)
-        #cv2.imshow("Centroids on Scaled Shape", img_color)
-        #print("Press any key in the image window to continue...")
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
+        # cv2.imshow("Centroids on Scaled Shape", img_color)
+        # print("Press any key in the image window to continue...")
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return centroids
 
@@ -335,7 +333,11 @@ class SwarmConstructionSimulation:
         update_rate = Agent.start_speed * 4
 
         self.sim = SimulationEngine(
-            "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
+            "Swarm Construction",
+            800,
+            draw_rate=30,
+            update_rate=update_rate,
+            analytics_func=self.run_analytics,
         )
         self.agents = []
 
@@ -349,6 +351,7 @@ class SwarmConstructionSimulation:
         self.place_agents(200)
 
         self.sim.run()
+
 
 if __name__ == "__main__":
     swarm_sim = SwarmConstructionSimulation()

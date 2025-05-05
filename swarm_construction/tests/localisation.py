@@ -83,15 +83,16 @@ class Test:
                 f"moving @ {self.agent.local_pos}, actual_pos = {np.subtract(self.agent._pos,[400,400])* [1,-1]}"
             )
 
-
     def run_analytics(self):
-            ana_suite = Analytics(self.sim, self.seed_origin)
-            ana_suite.run_analytics()
+        ana_suite = Analytics(self.sim, self.seed_origin)
+        ana_suite.run_analytics()
 
     def run(self):
 
         # Setup the simulation
-        self.sim = SimulationEngine("Localisation Test", 800, analytics_func=self.run_analytics)
+        self.sim = SimulationEngine(
+            "Localisation Test", 800, analytics_func=self.run_analytics
+        )
         middle = self.sim.window_size / 2
 
         # Setup seed agents.

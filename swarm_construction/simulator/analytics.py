@@ -90,7 +90,7 @@ class Analytics:
 
         for idx, pos in enumerate(self.agent_positions[:, 0]):
             if self.agents[idx].is_seed:
-                # distinguish seeds 
+                # distinguish seeds
                 outline = "green"
                 fill = True
                 color = "green"
@@ -102,10 +102,10 @@ class Analytics:
                 pos, radius=self.agents[0]._radius, ec=outline, fill=fill, color=color
             )
             ax.add_artist(point)
-        
+
         if save:
-                filename = self.filename_base + "localpos.eps"
-                fig.savefig(filename, format="eps")
+            filename = self.filename_base + "localpos.eps"
+            fig.savefig(filename, format="eps")
 
     def plot_actual_pos(self, save):
         """Plots a map of actual positions
@@ -342,8 +342,8 @@ class Analytics:
         )
 
         if save:
-                filename = self.filename_base + "heatmap.eps"
-                fig.savefig(filename, format="eps")
+            filename = self.filename_base + "heatmap.eps"
+            fig.savefig(filename, format="eps")
 
     ######### CALCULATIONS ##########
 

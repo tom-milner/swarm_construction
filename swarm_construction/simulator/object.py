@@ -145,7 +145,8 @@ class SimulationObject:
             self._sim_engine.assign_neighbourhood(self)
 
         # If we have no speed, no need to recalculate any movement stuff.
-        if self.speed == 0: return
+        if self.speed == 0:
+            return
 
         # Calculate the number of pixels we must move per frame, in order to produce the desired speed.
         pixels_per_frame = self.speed / fps
@@ -163,7 +164,7 @@ class SimulationObject:
         assert (
             self._pos[1] < self._sim_engine.window_size
         ), "SimulationObject y-coordinate is outside the world!"
-        
+
         # Get the sim engine to reassign us to a neighbourhood.
         self._neighbourhood = self._sim_engine.assign_neighbourhood(self)
 
@@ -195,7 +196,8 @@ class SimulationObject:
             self._sim_engine.surface.blit(text_surface, text_rect)
 
     def fix_collision(self, collision):
-        if not collision[0]: return
+        if not collision[0]:
+            return
         self._pos = np.subtract(self._pos, collision[1])
 
     def check_collision(self, other_object):
@@ -298,7 +300,7 @@ class SimulationObject:
 
             # Work out the distance from the current object.
             diff = np.subtract(self._pos, obj._pos)
-            dist_squared = diff[0]**2 + diff[1]**2
+            dist_squared = diff[0] ** 2 + diff[1] ** 2
 
             # only neighbours within comms distance
             if dist_squared <= self._comms_radius**2:
@@ -314,8 +316,9 @@ class SimulationObject:
         neighbours = neighbours[neighbours[:, 1].argsort()]
 
         # Only return the closest n objects.
-        if n is not None: neighbours = neighbours[0:n]
-        
+        if n is not None:
+            neighbours = neighbours[0:n]
+
         return neighbours
 
     def get_orbit_object(self):
