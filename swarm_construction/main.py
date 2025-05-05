@@ -78,7 +78,8 @@ class SwarmConstructionSimulation:
                     gradient = 0 if i==0 else 1
                 )
             )
-
+        self.agents[-1].is_bottom_seed = True
+        
         # Return the positions of the seeds.
         return seed_pos
 
@@ -339,13 +340,13 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.25 * self.sim.window_size, 0.55 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("wrench_2.bmp")
-        self.place_agents(300)
+        self.place_shape("optimum.bmp")
+        self.place_agents(200)
 
         self.sim.run()
 
