@@ -415,7 +415,7 @@ class Agent(SimulationObject):
     def state_moving_outside_shape(self, fps):
         if self.mode == 'monochrome':
             self.color = Colour.light_blue
-        neighbours = self.get_nearest_neighbours()
+        neighbours = self.get_nearest_neighbours(3)
 
         self.follow_edges(neighbours)
         self.localise(neighbours)
