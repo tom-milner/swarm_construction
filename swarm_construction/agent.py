@@ -24,6 +24,7 @@ class Agent(SimulationObject):
     radius: int = 10
     speed: int = 0
     start_speed = 100
+    average_start_time = 1
 
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
@@ -160,7 +161,7 @@ class Agent(SimulationObject):
         self.fix_collision(collision)
 
         # If we crash into an agent, stop moving for a bit.
-        if closest[0].speed != 0:
+        if closest[0].speed != 0:    
             return
         
 
@@ -185,7 +186,7 @@ class Agent(SimulationObject):
 
         # Get the neighbours that are already localised.
         localised_neighbours = [
-            n for n in neighbours if n[0].state == AgentState.LOCALISED
+            n for n in neighbours if n[0].state == AgentState.LOCALISED and n[0].local_pos is not None
         ]
 
         # If we have < 3 localised neighbours, we can't localise ourselves
@@ -384,8 +385,7 @@ class Agent(SimulationObject):
             return
 
         # If we're unlucky, we don't get to start.
-        average_start_time = 2
-        p = 1 / (average_start_time * (fps + 1))
+        p = 1 / (self.average_start_time * (fps + 1))
         if random.random() > p:
             return False
 
@@ -410,13 +410,13 @@ class Agent(SimulationObject):
         self.update_gradient(neighbours)
 
         # If we touch a localised agent, move to the next state.
-        if neighbours[0][0].state == AgentState.LOCALISED:
+        if neighbours[0][0].state == AgentState.LOCALISED and self.gradient > 1:
             self.state = AgentState.MOVING_OUTSIDE_SHAPE
 
     def state_moving_outside_shape(self, fps):
         if self.mode == 'monochrome':
             self.color = Colour.light_blue
-        neighbours = self.get_nearest_neighbours(3)
+        neighbours = self.get_nearest_neighbours()
 
         self.follow_edges(neighbours)
         self.localise(neighbours)
@@ -428,20 +428,20 @@ class Agent(SimulationObject):
             return
 
         
-        if self.is_inside_shape():
+        if self.is_inside_shape() and self.gradient > 1:
             self.state = AgentState.MOVING_INSIDE_SHAPE
             return
 
     def state_moving_inside_shape(self, fps):
         if self.mode == 'monochrome':
             self.color = Colour.orange
-        neighbours = self.get_nearest_neighbours(3)
+        neighbours = self.get_nearest_neighbours()
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
 
         # Check if we need to stop and assemble the shape.
-        if self.assemble_shape():
+        if self.assemble_shape() and self.gradient > 1:
             self.state = AgentState.LOCALISED
             self.speed = 0
             return
