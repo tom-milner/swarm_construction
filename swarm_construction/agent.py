@@ -23,7 +23,7 @@ class Agent(SimulationObject):
     # Defaults
     radius: int = 10
     speed: int = 0
-    start_speed = 200
+    start_speed = 100
 
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
