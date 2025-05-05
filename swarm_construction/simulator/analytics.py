@@ -260,9 +260,6 @@ class Analytics:
         ]
         ax1.legend(handles=legend_elements)
         ax1.set_title("Agents actual position vs local position")
-        if save:
-            filename = self.filename_base + "comp.eps"
-            fig.savefig(filename, format="eps")
 
         # stats module
         if stats:
@@ -287,8 +284,8 @@ class Analytics:
                 verticalalignment="bottom",
                 transform=ax1.transAxes,
             )
-
-            fig, ax2 = plt.subplots()
+            
+            fig2, ax2 = plt.subplots()
             grad_errors = self.localisation_err_gradient()
             gradients = np.arange(len(grad_errors))
             ax2.plot(gradients, grad_errors)
@@ -298,7 +295,11 @@ class Analytics:
             ax2.set_title("Average localisation error per gradient")
             if save:
                 filename = self.filename_base + "error.eps"
-                fig.savefig(filename, format="eps")
+                fig2.savefig(filename, format="eps")
+
+        if save:
+            filename = self.filename_base + "comp.eps"
+            fig.savefig(filename, format="eps")
 
     def plot_error_heatmap(self, save):
         """Plots an error heatmap on the agents actual position
