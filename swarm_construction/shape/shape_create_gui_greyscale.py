@@ -4,11 +4,11 @@ from PIL import Image
 import numpy as np
 
 root = tk.Tk()
-root.title("Bitmap shape creation")
+root.title("Greyscale bitmap shape creation")
 
 # canvas size
-SHAPE_ROWS = 20
-SHAPE_COLS = 30
+SHAPE_ROWS = 10
+SHAPE_COLS = 10
 shape_state = np.zeros((SHAPE_ROWS, SHAPE_COLS), dtype=int)
 
 
@@ -16,9 +16,13 @@ def toggle_pixel(event, row, col):
     # Get the clicked pixel
     pixel = event.widget
     # Toggle its state and background color
-    if shape_state[row][col] == 1:
+    # clicking rotates through colours 
+    if shape_state[row][col] == 255:
         shape_state[row][col] = 0
         pixel.config(bg="black")
+    elif shape_state[row][col] == 0:
+        shape_state[row][col] = 127
+        pixel.config(bg="grey")
     else:
         shape_state[row][col] = 255
         pixel.config(bg="white")

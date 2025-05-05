@@ -6,6 +6,7 @@ from matplotlib.lines import Line2D
 from matplotlib import colormaps
 from matplotlib import colors
 from matplotlib import cm
+from matplotlib.ticker import MaxNLocator
 
 
 class Analytics:
@@ -21,7 +22,16 @@ class Analytics:
         self.axis_y_min = -1 * (self._sim_engine.window_size - seed_origin[1]) * 0.5
         self.axis_y_max = seed_origin[1]
 
-    def run_analytics(self):
+        self.filename_base = (
+            self._sim_engine.shape_name[:-4]
+            + "_"
+            + str(len(self.agents))
+            + "agents_"
+            + str(self.agents[0].start_speed)
+            + "speed_"
+        )
+
+    def run_analytics(self, save=False):
         """Run analytics suite
 
         self.get_agent is required to get the local and actual agent positions
@@ -29,11 +39,11 @@ class Analytics:
         plt.show() required to show the graphs
         """
         self.get_agent_data(self.agents, self.seed_origin)
-        #self.plot_local_pos()
-        #self.plot_actual_pos()
-        #self.plot_sidebyside()
-        self.plot_comparison(True)
-        self.plot_error_heatmap()
+        # self.plot_local_pos(save)
+        # self.plot_actual_pos(save)
+        # self.plot_sidebyside(save)
+        self.plot_comparison(True, save)
+        self.plot_error_heatmap(save)
         plt.show()
 
     def get_agent_data(self, agents, seed_origin):
@@ -53,7 +63,7 @@ class Analytics:
         self.agent_gradients = []
         for agent in agents:
             # ignores unlocalised or moving agents
-            if (np.all(agent.local_pos != None) and agent.speed == 0):
+            if np.all(agent.local_pos != None) and agent.speed == 0:
                 # converts actual position to coordinates relative to seed_pos
                 # means plot origin is at the seed
                 pos_in_seedcoords = [
@@ -67,7 +77,7 @@ class Analytics:
 
     ######### PLOTS ##########
 
-    def plot_local_pos(self):
+    def plot_local_pos(self, save):
         """Plots a map of local positions
 
         This is basically where the agents think they are
@@ -92,8 +102,12 @@ class Analytics:
                 pos, radius=self.agents[0]._radius, ec=outline, fill=fill, color=color
             )
             ax.add_artist(point)
+        
+        if save:
+                filename = self.filename_base + "localpos.eps"
+                fig.savefig(filename, format="eps")
 
-    def plot_actual_pos(self):
+    def plot_actual_pos(self, save):
         """Plots a map of actual positions
 
         This is where the agents actually are
@@ -119,7 +133,11 @@ class Analytics:
             )
             ax.add_artist(point)
 
-    def plot_sidebyside(self):
+        if save:
+            filename = self.filename_base + "actualpos.eps"
+            fig.savefig(filename, format="eps")
+
+    def plot_sidebyside(self, save):
         """Plots local pos and actual pos side by side in subplots"""
         fig, (ax1, ax2) = plt.subplots(1, 2)
         for ax in fig.get_axes():
@@ -176,7 +194,11 @@ class Analytics:
                 horizontalalignment="center",
             )
 
-    def plot_comparison(self, stats=False):
+        if save:
+            filename = self.filename_base + "sbs.eps"
+            fig.savefig(filename, format="eps")
+
+    def plot_comparison(self, stats=False, save=False):
         """Plots a comparison of actual and local position
 
         Actual position is black circles, with local position overlayed with red dots
@@ -188,7 +210,7 @@ class Analytics:
                                         Overall average localisation error
                                         Average localisation error per gradient
         """
-        fig, ax = plt.subplots()
+        fig, ax1 = plt.subplots()
         for idx, pos in enumerate(self.agent_positions):
             if self.agents[idx].is_seed:
                 outline = "green"
@@ -205,17 +227,17 @@ class Analytics:
                 fill=fill,
                 color=color,
             )
-            ax.add_artist(point)
+            ax1.add_artist(point)
             # plots agents local pos as red dots
             point2 = plt.Circle(pos[0], radius=3, color="red")
-            ax.add_artist(point2)
+            ax1.add_artist(point2)
             # plots a line between the actual and local pos
-            ax.plot([pos[0, 0], pos[1, 0]], [pos[0, 1], pos[1, 1]], color="r")
+            ax1.plot([pos[0, 0], pos[1, 0]], [pos[0, 1], pos[1, 1]], color="r")
 
-        ax.set_xlim([self.axis_x_min, self.axis_x_max])
-        ax.set_ylim([self.axis_y_min, self.axis_y_max])
-        ax.set_aspect(1)
-        # makes the legend pretty 
+        ax1.set_xlim([self.axis_x_min, self.axis_x_max])
+        ax1.set_ylim([self.axis_y_min, self.axis_y_max])
+        ax1.set_aspect(1)
+        # makes the legend pretty
         legend_elements = [
             Line2D(
                 [],
@@ -236,42 +258,49 @@ class Analytics:
                 markersize=5,
             ),
         ]
-        ax.legend(handles=legend_elements)
-        ax.set_title("Agents actual position vs local position")
+        ax1.legend(handles=legend_elements)
+        ax1.set_title("Agents actual position vs local position")
+        if save:
+            filename = self.filename_base + "comp.eps"
+            fig.savefig(filename, format="eps")
 
         # stats module
         if stats:
             # gets average localisation error and writes in bottom right corner
             error = self.localisation_av_err()
             err_label = "Average localisation error = " + str(f"{error:.3}") + "px"
-            ax.text(
+            ax1.text(
                 0.98,
                 0.02,
                 err_label,
                 horizontalalignment="right",
                 verticalalignment="bottom",
-                transform=ax.transAxes,
+                transform=ax1.transAxes,
             )
 
-            # writes a table of gradient localisation errors
+            num_agents_label = "Number of agents = " + str(len(self.agent_positions))
+            ax1.text(
+                0.98,
+                0.08,
+                num_agents_label,
+                horizontalalignment="right",
+                verticalalignment="bottom",
+                transform=ax1.transAxes,
+            )
+
+            fig, ax2 = plt.subplots()
             grad_errors = self.localisation_err_gradient()
-            cell_vals = np.zeros((len(grad_errors), 2))
-            # this gets cell_vals in the format required by plt.table
-            # 2D array of cell values 
-            for row in range(len(cell_vals)):
-                cell_vals[row, 0] = row
-                cell_vals[row, 1] = f"{grad_errors[row]:.3}"
-            col_labels = ["Gradient", "Avg. loc error (px)"]
-            table = ax.table(
-                cellText=cell_vals,
-                colLabels=col_labels,
-                cellLoc="center",
-                loc="right",
-                edges="open",
-            )
-            table.auto_set_column_width([0, 1])
+            gradients = np.arange(len(grad_errors))
+            ax2.plot(gradients, grad_errors)
+            ax2.set_ylabel("Average localisation error (px)")
+            ax2.set_xlabel("Gradient")
+            ax2.xaxis.set_major_locator(MaxNLocator(integer=True))
+            ax2.set_title("Average localisation error per gradient")
+            if save:
+                filename = self.filename_base + "error.eps"
+                fig.savefig(filename, format="eps")
 
-    def plot_error_heatmap(self):
+    def plot_error_heatmap(self, save):
         """Plots an error heatmap on the agents actual position
 
         Heatmap shows magnitude of the localisation error for each agent
@@ -289,7 +318,7 @@ class Analytics:
             errors.append(agent_error)
 
         # finds error min and max, uses it to get a normalisation function.
-        # the norm function relates to the colour map, allowing scaling to 
+        # the norm function relates to the colour map, allowing scaling to
         # the actual error values
         error_min = np.min(errors)
         error_max = np.max(errors)
@@ -312,6 +341,10 @@ class Analytics:
             label="Localisation Error (px)",
         )
 
+        if save:
+                filename = self.filename_base + "heatmap.eps"
+                fig.savefig(filename, format="eps")
+
     ######### CALCULATIONS ##########
 
     def localisation_av_err(self):
@@ -329,9 +362,8 @@ class Analytics:
         # calcs average error
         return total_error / len(self.agent_positions)
 
-
     def localisation_err_gradient(self):
-        """ Calculates the average location error per gradient value
+        """Calculates the average location error per gradient value
 
         Returns:
             array: list of av loc errors, gradient is the array index
@@ -344,8 +376,8 @@ class Analytics:
             total_error[self.agent_gradients[idx]] += agent_error
             num_agents[self.agent_gradients[idx]] += 1
 
-        # calculates errors per gradient 
-        # removes any nan values 
+        # calculates errors per gradient
+        # removes any nan values
         grad_errs = np.divide(total_error, num_agents)
         grad_errs = grad_errs[~np.isnan(grad_errs)]
 

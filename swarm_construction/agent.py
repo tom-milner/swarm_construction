@@ -22,7 +22,7 @@ class Agent(SimulationObject):
 
     # Defaults
     radius: int = 10
-    color: Colour = Colour.white
+    speed: int = 0
     start_speed = 200
 
     class Shape:
@@ -36,9 +36,11 @@ class Agent(SimulationObject):
         self,
         sim_engine: SimulationEngine,
         start_pos,
+        color = Colour.white,
         local_pos=None,
         shape: Shape = None,
-        gradient=None,
+        mode='monochrome',
+        gradient=None
     ):
         """Initialise the agent.
         Purposefully keeping the input params minimal, so that all instances of this agent class are similar - trying to keep it faithful to the paper!
@@ -53,16 +55,25 @@ class Agent(SimulationObject):
         self.gradient = gradient
         self.speed = 0
         self.local_pos = local_pos
-
         self.shape = shape
         self.is_seed = False
         self.state = AgentState.IDLE
+        self.mode = mode
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
             self.state = AgentState.LOCALISED
             self.color = Colour.light_green
             self.is_seed = True
+        else:
+            self.color = color
+            # this colour flag is set to the same value as the pixel in the bitmap shape
+            # allows for easy checking if we're in our part of the shape or not
+            # agents effectively only 'see' their section of the shape
+            if color == Colour.grey:
+                self.color_flag = 127
+            elif color == Colour.white:
+                self.color_flag = 255
 
         # Initialise the underlying simulation object.
         super().__init__(
@@ -90,14 +101,16 @@ class Agent(SimulationObject):
 
         # get gradients of neighbours
         gradients = [neighbour[0].gradient for neighbour in neighbours]
-        speeds = [neighbour[0].speed for neighbour in neighbours]
+        
+        # there are neighbours with a higher gradient than us
         if any(
             gradient is not None and gradient > self.gradient for gradient in gradients
         ):
-            # there are neighbours with a higher gradient than us
             return False
-        if any(speeds > 0 for speeds in speeds):
-            # there are neighbours moving
+        
+        # there are neighbours moving
+        if any(n[0].speed > 0 and n[1] < Agent.radius * 2 * 4 for n in neighbours):
+            
             return False
 
         equal_grad_neighbours = 0
@@ -143,9 +156,9 @@ class Agent(SimulationObject):
         if not collision[0]:
             # If we're not touching anything, do nothing.
             return
-    
-        # Don't orbit around agents that are moving.
-        if closest[0].speed != 0:    
+        
+        # Don't orbit around agents that are moving
+        if closest[0].speed != 0:
             self.fix_collision(collision)
             return
 
@@ -274,10 +287,11 @@ class Agent(SimulationObject):
         rows = int(size[0] * (size[1] - mapped[1]))
         image_idx = int(rows + mapped[0])
 
-        if pixels[image_idx] != 255:
-            # We are not in the shape :(
+        if pixels[image_idx] != self.color_flag:
+            # We are not in our part of the shape :(
             return False
 
+        # Woohoo! We're in the shape!
         return True
 
     def update_gradient(self, neighbours):
@@ -340,18 +354,21 @@ class Agent(SimulationObject):
             and orb_agent.state == AgentState.LOCALISED
             and inside_shape
             and self.gradient <= orb_agent.gradient
+            and self.color_flag == orb_agent.color_flag
         ):
             return True
 
         # Condition 2: We are about to exit the shape.
         if not inside_shape:
+            self.speed = 0
             return True
-
+        
         return False
 
     def state_idle(self, fps):
         self.speed = 0
-        self.color = Colour.white
+        if self.mode == 'monochrome':
+            self.color = Colour.white
 
         # Initialise gradients if we need to.
         if self.gradient == None:
@@ -377,7 +394,8 @@ class Agent(SimulationObject):
 
     def state_moving_outside_seed(self, fps):
         self.speed = self.start_speed
-        self.color = Colour.white
+        if self.mode == 'monochrome':
+            self.color = Colour.white
 
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours(3)
@@ -389,7 +407,8 @@ class Agent(SimulationObject):
             self.state = AgentState.MOVING_OUTSIDE_SHAPE
 
     def state_moving_outside_shape(self, fps):
-        self.color = Colour.light_blue
+        if self.mode == 'monochrome':
+            self.color = Colour.light_blue
         neighbours = self.get_nearest_neighbours(3)
 
         self.follow_edges(neighbours)
@@ -397,7 +416,7 @@ class Agent(SimulationObject):
         self.update_gradient(neighbours)
 
         # If we touch an unlocalised agent, we're outside the seeds.
-        if neighbours[0][0].state == AgentState.IDLE:
+        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
             self.state = AgentState.MOVING_OUTSIDE_SEED
             return
 
@@ -407,7 +426,8 @@ class Agent(SimulationObject):
             return
 
     def state_moving_inside_shape(self, fps):
-        self.color = Colour.orange
+        if self.mode == 'monochrome':
+            self.color = Colour.orange
         neighbours = self.get_nearest_neighbours(3)
         self.follow_edges(neighbours)
         self.localise(neighbours)
@@ -417,11 +437,17 @@ class Agent(SimulationObject):
             self.state = AgentState.LOCALISED
             self.speed=0
             return
+        
+        # If we touch an unlocalised agent, we're outside the seeds.
+        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
+            self.state = AgentState.MOVING_OUTSIDE_SEED
+            return
 
     def state_localised(self, fps):
         self.speed = 0
         if not self.is_seed:
-            self.color = Colour.orange
+            if self.mode == 'monochrome':
+                self.color = Colour.orange
 
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.

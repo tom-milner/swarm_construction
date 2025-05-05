@@ -7,6 +7,7 @@ from .simulator.analytics import Analytics
 import math
 import numpy as np
 from PIL import Image
+import random
 
 
 class SwarmConstructionSimulation:
@@ -72,6 +73,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    mode=self.mode,
                     gradient = 0 if i==0 else 1
                 )
             )
@@ -106,7 +108,9 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
+                    color=Colour.white,
                     shape=self.target_shape,
+                    mode=self.mode
                 )
                 for pos in conn_pos
             ]
@@ -152,12 +156,20 @@ class SwarmConstructionSimulation:
                 pos = [x_offset + dx * 2 * j, dy * i]
                 pos = np.add(pos, cluster_start)
 
+                # randomly make roughly the right proportion of agents each colour
+                if random.random() < self.p_white_agents:
+                    color = Colour.white
+                else:
+                    color = Colour.grey
+
                 # Generate the agent.
                 self.agents.append(
                     Agent(
                         self.sim,
                         pos,
+                        color,
                         shape=self.target_shape,
+                        mode=self.mode
                     )
                 )
                 num_agents -= 1
@@ -201,8 +213,9 @@ class SwarmConstructionSimulation:
         goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
+        self.sim.shape_name = shape_file
         shape = Image.open(shape_file)
-        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
+        init_shape_area = sum(pixel != 0 for pixel in shape.getdata())
 
         scale_factor = math.sqrt(goal_shape_area / init_shape_area)
         scaled_shape = shape.resize(
@@ -212,15 +225,32 @@ class SwarmConstructionSimulation:
         # This flips the shape, may need to be removed if we change how we generate shapes
         # NOTE not required when using shape_create_gui to make bmp file!
         # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
-        scaled_shape.save("scaled_shape_test.bmp")
+        # scaled_shape.save("scaled_shape_test.bmp")
 
         # converts image to numpy array
         shape_array = np.array(scaled_shape)
 
-        # finds the bottom left most white pixel in the scaled shape
+        # counts how many of each colour pixel there are
+        # then works out the proportion of white pixels compared to grey
+        # can be expanded if we want more colours
+        # this proportion is used to make sure we have the right amount of agents
+        # of each colour
+        colour_count = np.array(np.unique(shape_array, return_counts=True)).T
+        colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
+        white_loc_row, white_loc_col = np.where(colour_count == 255)
+        self.p_white_agents = (
+            colour_count[white_loc_row, 1] / np.sum(colour_count[:, 1])
+        )
+
+        if (self.p_white_agents == 1):
+            self.mode = 'monochrome'
+        else:
+            self.mode = 'greyscale'
+
+        # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
-        # this finds the indices of all white pixels
-        white_px_index = np.argwhere(shape_array == True)
+        # this finds the indices of all not black pixels
+        white_px_index = np.argwhere(shape_array != 0)
 
         # confusingly when dealing with the image through pillow pixels are identified as [x,y]
         # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
@@ -249,7 +279,9 @@ class SwarmConstructionSimulation:
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
-        ana_suite.run_analytics()
+        # Pass in True for figures to save as .eps
+        # False for no saving
+        ana_suite.run_analytics(True)
 
     def main(self):
 
@@ -267,7 +299,7 @@ class SwarmConstructionSimulation:
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.15
 
-        self.place_shape("wrench.bmp")
+        self.place_shape("gs_test3.bmp")
         self.place_agents(300)
         
         self.sim.run()

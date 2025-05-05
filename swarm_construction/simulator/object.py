@@ -195,6 +195,7 @@ class SimulationObject:
             self._sim_engine.surface.blit(text_surface, text_rect)
 
     def fix_collision(self, collision):
+        if not collision[0]: return
         self._pos = np.subtract(self._pos, collision[1])
 
     def check_collision(self, other_object):
