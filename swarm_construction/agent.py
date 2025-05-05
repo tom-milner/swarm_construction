@@ -161,8 +161,6 @@ class Agent(SimulationObject):
 
         # If we crash into an agent, stop moving for a bit.
         if closest[0].speed != 0:
-            self.speed = 0
-            self.state = AgentState.CRASH_STATE
             return
         
 
