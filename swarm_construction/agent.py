@@ -378,7 +378,7 @@ class Agent(SimulationObject):
             return
 
         # If we're unlucky, we don't get to start.
-        average_start_time = 1
+        average_start_time = 2
         p = 1 / (average_start_time * (fps + 1))
         if random.random() > p:
             return False
