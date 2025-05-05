@@ -7,39 +7,59 @@ root = tk.Tk()
 root.title("Greyscale bitmap shape creation")
 
 # canvas size
-SHAPE_ROWS = 10
-SHAPE_COLS = 10
+SHAPE_ROWS = 20
+SHAPE_COLS = 30
 shape_state = np.zeros((SHAPE_ROWS, SHAPE_COLS), dtype=int)
 
 
 def toggle_pixel(event, row, col):
+    """Changes the colour of a pixel on the canvas when clicked
+
+    Args:
+        event: tk event
+        row (int): pixel row
+        col (int): pixel col
+    """
     # Get the clicked pixel
     pixel = event.widget
     # Toggle its state and background color
     # clicking rotates through colours 
-    if shape_state[row][col] == 255:
+    if shape_state[row][col] == 127:
         shape_state[row][col] = 0
         pixel.config(bg="black")
     elif shape_state[row][col] == 0:
-        shape_state[row][col] = 127
-        pixel.config(bg="grey")
-    else:
         shape_state[row][col] = 255
         pixel.config(bg="white")
+    else:
+        shape_state[row][col] = 127
+        pixel.config(bg="grey")
 
 
 def save_bitmap(shape_state):
-    # Crops any rows and columns that only include black pixels
-    shape_state = shape_state[~np.all(shape_state == 0, axis=1)]
-    shape_state = shape_state[:, ~np.all(shape_state == 0, axis=0)]
+    """saves the pixel canvas as a bitmap image
+
+    Args:
+        shape_state (2D array): array of pixel colours 
+    """
+    # Find rows, cols where white or grey pixels exist
+    rows = np.any(shape_state != 0, axis=1)
+    cols = np.any(shape_state != 0, axis=0)
+
+    # Get min and max index for rows, cols in 'bounding box'
+    row_start, row_end = np.where(rows)[0][[0, -1]]
+    col_start, col_end = np.where(cols)[0][[0, -1]]
+
+    # remove rows, cols outside 'bounding box' for slightly nicer bmps
+    shape_state = shape_state[row_start:row_end+1, col_start:col_end+1]
     crop_rows, crop_cols = shape_state.shape
 
-    # Create a new image (1-bit mode)
+    # Create a new image (8-bit greyscale mode)
     shape = Image.new("L", (crop_cols, crop_rows))
     # Populate the image with pixel data from grid_state
     for row in range(crop_rows):
         for col in range(crop_cols):
             shape.putpixel((col, row), int(shape_state[row][col]))
+
     # Ask the user where to save the file
     file_path = filedialog.asksaveasfilename(
         defaultextension=".bmp", filetypes=[("Bitmap files", "*.bmp")]

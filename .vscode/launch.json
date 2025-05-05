@@ -63,13 +63,13 @@
       "name": "Shape creation gui",
       "type": "debugpy",
       "request": "launch",
-      "module": "swarm_construction.shape.shape_create_gui"
+      "module": "swarm_construction.shape.shape_creator"
     },
     {
       "name": "Greyscale Shape creation gui",
       "type": "debugpy",
       "request": "launch",
-      "module": "swarm_construction.shape.shape_create_gui_greyscale"
+      "module": "swarm_construction.shape.shape_creator_gs"
     },
     {
       "name": "Localisation",
