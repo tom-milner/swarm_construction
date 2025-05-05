@@ -99,7 +99,7 @@ class SwarmConstructionSimulation:
         # Place the connector agents underneath the origin agent.
         dx = column_spacing
         dy = line_spacing
-        conn_deltas = np.array([[-dx, dy], [dx, dy]])
+        conn_deltas = np.array([[-dx, dy], [dx, dy],[0, 2*dy], [-2*dx, 2*dy]])
         conn_pos = np.add(conn_deltas, origin_agent)
 
         # Generate the connecting agents and add them to the simulation.
@@ -135,10 +135,10 @@ class SwarmConstructionSimulation:
         # Calculate the side length of the square.
         side_len = math.ceil(math.sqrt(num_agents))
 
-        # Place the cluster underneath, and nudged right, of the origin agent.
+        # Place the cluster underneath, and nudged left, of the origin agent.
         dx = column_spacing
         dy = line_spacing
-        cluster_start = np.add(origin_agent, [dx, dy])
+        cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
         aspect_ratio = 1
@@ -153,7 +153,7 @@ class SwarmConstructionSimulation:
                     return
 
                 # Place this agent in the cluster square.
-                pos = [x_offset - dx * 2 * j, dy * i]
+                pos = [x_offset + dx * 2 * j, dy * i]
                 pos = np.add(pos, cluster_start)
 
                 # randomly make roughly the right proportion of agents each colour
@@ -201,8 +201,8 @@ class SwarmConstructionSimulation:
         )
         num_agents -= len(connectors)
 
-        # Generate the cluster of agents underneath the left connector agent.
-        left_conn = connectors[np.argmin(connectors, axis=0)[1]]
+        # Generate the cluster of agents underneath the bottom left connector agent.
+        left_conn = connectors[-1]
         self.generate_cluster_agents(
             num_agents, line_spacing, column_spacing, left_conn
         )
@@ -294,10 +294,10 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.5 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.1
+        self.shape_area_proportion = 0.15
 
         self.place_shape("wrench_2.bmp")
         self.place_agents(300)

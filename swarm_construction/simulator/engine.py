@@ -256,6 +256,4 @@ class SimulationEngine:
                 nearby = np.concatenate(
                     (nearby, self._neighbourhoods[target_x][target_y])
                 )
-        if len(nearby) == 0:
-            pass
         return nearby

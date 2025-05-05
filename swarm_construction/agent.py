@@ -253,6 +253,11 @@ class Agent(SimulationObject):
             else:
                 run_minimise = 0
 
+
+        # Add localisation noise to simulate real life.
+        noise_threshold = 0.00
+        pos += random.uniform(-noise_threshold, noise_threshold)
+
         # save our localised position
         self.local_pos = pos
 
@@ -263,7 +268,7 @@ class Agent(SimulationObject):
             bool: Whether we're in the shape (True) or not (False).
         """
         if self.shape is None:
-            return
+            return False
 
         # Can only see if we're inside the shape if we're localised.
         if self.local_pos is None:
@@ -357,11 +362,12 @@ class Agent(SimulationObject):
             and inside_shape
             and self.gradient <= orb_agent.gradient
             and self.color_flag == orb_agent.color_flag
+            and self.gradient > 1
         ):
             return True
 
         # Condition 2: We are about to exit the shape.
-        if not inside_shape:
+        if not inside_shape and self.gradient > 1: 
             return True
         
         return False
@@ -416,7 +422,7 @@ class Agent(SimulationObject):
         self.localise(neighbours)
         self.update_gradient(neighbours)
 
-        # If we touch an unlocalised agent, or a seed robot, we're outside the seeds.
+        # If we touch an unlocalised agent, we're outside the seeds.
         if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
             self.state = AgentState.MOVING_AROUND_CLUSTER
             return
@@ -437,7 +443,7 @@ class Agent(SimulationObject):
         # Check if we need to stop and assemble the shape.
         if self.assemble_shape():
             self.state = AgentState.LOCALISED
-            self.speed=0
+            self.speed = 0
             return
         
         # If we touch an unlocalised agent, we're outside the seeds.
