@@ -198,7 +198,7 @@ class SimulationEngine:
 
         # If we haven't changed neighbourhood, do nothing.
         if np.array_equal(sim_obj._neighbourhood, new_neighbourhood_idx):
-            return
+            return new_neighbourhood_idx
 
         # Remove the object from the old neighbourhood.
         old_x, old_y = sim_obj._neighbourhood
@@ -223,6 +223,7 @@ class SimulationEngine:
 
         # Set neighbourhood of object.
         sim_obj._neighbourhood = new_neighbourhood_idx
+        return new_neighbourhood_idx
 
     def get_nearby_objects(self, neighbourhood_coords):
         """Get all the simulation objects in a 3x3 square around the provided neighbourhood.
@@ -255,5 +256,6 @@ class SimulationEngine:
                 nearby = np.concatenate(
                     (nearby, self._neighbourhoods[target_x][target_y])
                 )
-
+        if len(nearby) == 0:
+            pass
         return nearby

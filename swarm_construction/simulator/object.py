@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            radius * 2 * 5
+            radius * 2 * 3
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
@@ -165,7 +165,7 @@ class SimulationObject:
         ), "SimulationObject y-coordinate is outside the world!"
         
         # Get the sim engine to reassign us to a neighbourhood.
-        self._sim_engine.assign_neighbourhood(self)
+        self._neighbourhood = self._sim_engine.assign_neighbourhood(self)
 
     def update_label(self, value):
         self._label = value
@@ -286,7 +286,7 @@ class SimulationObject:
                         Contains all Agents within comms distance (3 agent diameters)
         """
         if not np.any(self._neighbourhood):
-            self._sim_engine.assign_neighbourhood(self)
+            self._neighbourhood = self._sim_engine.assign_neighbourhood(self)
 
         nearby_agents = self._sim_engine.get_nearby_objects(self._neighbourhood)
         neighbours = []

@@ -294,13 +294,13 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.15 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.15
+        self.shape_area_proportion = 0.1
 
-        self.place_shape("gs_test3.bmp")
-        self.place_agents(300)
+        self.place_shape("gs_test2.bmp")
+        self.place_agents(100)
         
         self.sim.run()
 

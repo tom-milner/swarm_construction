@@ -8,10 +8,10 @@ from enum import Enum
 
 class AgentState(Enum):
     IDLE = (1,)
-    MOVING_OUTSIDE_SEED = (2,)
+    MOVING_AROUND_CLUSTER = (2,)
     MOVING_OUTSIDE_SHAPE = (3,)
     MOVING_INSIDE_SHAPE = (4,)
-    LOCALISED = 5
+    LOCALISED = 5,
 
 
 class Agent(SimulationObject):
@@ -157,10 +157,14 @@ class Agent(SimulationObject):
             # If we're not touching anything, do nothing.
             return
         
-        # Don't orbit around agents that are moving
+        self.fix_collision(collision)
+
+        # If we crash into an agent, stop moving for a bit.
         if closest[0].speed != 0:
-            self.fix_collision(collision)
+            self.speed = 0
+            self.state = AgentState.CRASH_STATE
             return
+        
 
         # Orbit around the new neighbour.
         self.set_orbit_object(closest[0])
@@ -334,7 +338,7 @@ class Agent(SimulationObject):
 
         # Can't assemble the shape if we're not localised.
         if self.local_pos is None:
-            return
+            return False
 
         # There will never be a shape in the bottom left quadrant.
         if self.local_pos[0] < 0 and self.local_pos[1] < 0:
@@ -345,7 +349,7 @@ class Agent(SimulationObject):
         # Condition 1: We are about to edge follow around a stationary robot that has a larger gradient value than our own.
         orb_agent = self.get_orbit_object()
         if orb_agent is None:
-            return
+            return False
 
         inside_shape = self.is_inside_shape()
 
@@ -360,7 +364,6 @@ class Agent(SimulationObject):
 
         # Condition 2: We are about to exit the shape.
         if not inside_shape:
-            self.speed = 0
             return True
         
         return False
@@ -389,10 +392,10 @@ class Agent(SimulationObject):
             return
 
         # Start!
-        self.state = AgentState.MOVING_OUTSIDE_SEED
-        self.state_moving_outside_seed(fps)
+        self.state = AgentState.MOVING_AROUND_CLUSTER
+        self.state_moving_around_cluster(fps)
 
-    def state_moving_outside_seed(self, fps):
+    def state_moving_around_cluster(self, fps):
         self.speed = self.start_speed
         if self.mode == 'monochrome':
             self.color = Colour.white
@@ -415,9 +418,9 @@ class Agent(SimulationObject):
         self.localise(neighbours)
         self.update_gradient(neighbours)
 
-        # If we touch an unlocalised agent, we're outside the seeds.
+        # If we touch an unlocalised agent, or a seed robot, we're outside the seeds.
         if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
-            self.state = AgentState.MOVING_OUTSIDE_SEED
+            self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
         
@@ -433,6 +436,7 @@ class Agent(SimulationObject):
         self.localise(neighbours)
         self.update_gradient(neighbours)
 
+        # Check if we need to stop and assemble the shape.
         if self.assemble_shape():
             self.state = AgentState.LOCALISED
             self.speed=0
@@ -440,7 +444,7 @@ class Agent(SimulationObject):
         
         # If we touch an unlocalised agent, we're outside the seeds.
         if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
-            self.state = AgentState.MOVING_OUTSIDE_SEED
+            self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
     def state_localised(self, fps):
@@ -462,8 +466,8 @@ class Agent(SimulationObject):
         match self.state:
             case AgentState.IDLE:
                 self.state_idle(fps)
-            case AgentState.MOVING_OUTSIDE_SEED:
-                self.state_moving_outside_seed(fps)
+            case AgentState.MOVING_AROUND_CLUSTER:
+                self.state_moving_around_cluster(fps)
             case AgentState.MOVING_OUTSIDE_SHAPE:
                 self.state_moving_outside_shape(fps)
             case AgentState.MOVING_INSIDE_SHAPE:
