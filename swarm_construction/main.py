@@ -8,6 +8,8 @@ import math
 import numpy as np
 from PIL import Image
 import cv2
+import random
+
 
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
@@ -25,7 +27,7 @@ class SwarmConstructionSimulation:
 
         
         window_area = window_size**2
-        total_agent_area = window_area * self.shape_area_proportion 
+        total_agent_area = window_area * (self.shape_area_proportion + 0.005)
         agent_area = total_agent_area / num_agents
 
         # Calculate the radius of each agent.
@@ -72,6 +74,7 @@ class SwarmConstructionSimulation:
                     seed_pos[i],
                     local_pos=local_pos[i],
                     shape=self.target_shape,
+                    mode=self.mode,
                     gradient = 0 if i==0 else 1
                 )
             )
@@ -97,7 +100,7 @@ class SwarmConstructionSimulation:
         # Place the connector agents underneath the origin agent.
         dx = column_spacing
         dy = line_spacing
-        conn_deltas = np.array([[-dx, dy], [dx, dy]])
+        conn_deltas = np.array([[-dx, dy], [dx, dy],[0, 2*dy], [-2*dx, 2*dy]])
         conn_pos = np.add(conn_deltas, origin_agent)
 
         # Generate the connecting agents and add them to the simulation.
@@ -106,7 +109,9 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
+                    color=Colour.white,
                     shape=self.target_shape,
+                    mode=self.mode
                 )
                 for pos in conn_pos
             ]
@@ -137,11 +142,12 @@ class SwarmConstructionSimulation:
         cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
-        for i in range(side_len):
+        aspect_ratio = 4/3
+        for i in range(round(side_len / aspect_ratio)):
             # Every other row is nudged forwards, so the circles fit snuggly.
             x_offset = 0 if i % 2 == 0 else dx
 
-            for j in range(side_len):
+            for j in range(round(side_len * aspect_ratio)):
 
                 # If all the agents have been generated, we're done.
                 if num_agents <= 0:
@@ -151,12 +157,20 @@ class SwarmConstructionSimulation:
                 pos = [x_offset + dx * 2 * j, dy * i]
                 pos = np.add(pos, cluster_start)
 
+                # randomly make roughly the right proportion of agents each colour
+                if random.random() < self.p_white_agents:
+                    color = Colour.white
+                else:
+                    color = Colour.grey
+
                 # Generate the agent.
                 self.agents.append(
                     Agent(
                         self.sim,
                         pos,
+                        color,
                         shape=self.target_shape,
+                        mode=self.mode
                     )
                 )
                 num_agents -= 1
@@ -188,8 +202,8 @@ class SwarmConstructionSimulation:
         )
         num_agents -= len(connectors)
 
-        # Generate the cluster of agents underneath the left connector agent.
-        left_conn = connectors[np.argmin(connectors, axis=0)[1]]
+        # Generate the cluster of agents underneath the bottom left connector agent.
+        left_conn = connectors[-1]
         self.generate_cluster_agents(
             num_agents, line_spacing, column_spacing, left_conn
         )
@@ -200,8 +214,9 @@ class SwarmConstructionSimulation:
         goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
+        self.sim.shape_name = shape_file
         shape = Image.open(shape_file)
-        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
+        init_shape_area = sum(pixel != 0 for pixel in shape.getdata())
 
         scale_factor = math.sqrt(goal_shape_area / init_shape_area)
         scaled_shape = shape.resize(
@@ -211,15 +226,32 @@ class SwarmConstructionSimulation:
         # This flips the shape, may need to be removed if we change how we generate shapes
         # NOTE not required when using shape_create_gui to make bmp file!
         # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
-        scaled_shape.save("scaled_shape_test.bmp")
+        # scaled_shape.save("scaled_shape_test.bmp")
 
         # converts image to numpy array
         shape_array = np.array(scaled_shape)
 
-        # finds the bottom left most white pixel in the scaled shape
+        # counts how many of each colour pixel there are
+        # then works out the proportion of white pixels compared to grey
+        # can be expanded if we want more colours
+        # this proportion is used to make sure we have the right amount of agents
+        # of each colour
+        colour_count = np.array(np.unique(shape_array, return_counts=True)).T
+        colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
+        white_loc_row, white_loc_col = np.where(colour_count == 255)
+        self.p_white_agents = (
+            colour_count[white_loc_row, 1] / np.sum(colour_count[:, 1])
+        )
+
+        if (self.p_white_agents == 1):
+            self.mode = 'monochrome'
+        else:
+            self.mode = 'greyscale'
+
+        # finds the bottom left most not black pixel in the scaled shape
         # in the array this is actually max y (row) with min x (col)
-        # this finds the indices of all white pixels
-        white_px_index = np.argwhere(shape_array == True)
+        # this finds the indices of all not black pixels
+        white_px_index = np.argwhere(shape_array != 0)
 
         # confusingly when dealing with the image through pillow pixels are identified as [x,y]
         # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
@@ -256,7 +288,9 @@ class SwarmConstructionSimulation:
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
-        ana_suite.run_analytics()     
+        # Pass in True for figures to save as .eps
+        # False for no saving
+        ana_suite.run_analytics(True)
 
     def get_islands(self, bmp_shape):
         """
@@ -297,7 +331,7 @@ class SwarmConstructionSimulation:
     def main(self):
 
         # For each pixel an agent travels, we update the sim twice.
-        update_rate = Agent.start_speed * 2
+        update_rate = Agent.start_speed * 4
 
         self.sim = SimulationEngine(
             "Swarm Construction", 800, draw_rate=30, update_rate=update_rate, analytics_func=self.run_analytics
@@ -305,17 +339,14 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.4 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
 
-        self.place_shape("mega_square_test.bmp")
-        self.place_agents(50)
+        self.place_shape("wrench_2.bmp")
+        self.place_agents(300)
 
-        self.last_agent_time = self.sim.clock.get_time()
-        self.agent_move_idx = -1
-       
         self.sim.run()
 
 if __name__ == "__main__":

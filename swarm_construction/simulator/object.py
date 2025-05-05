@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            radius * 6
+            radius * 2 * 3
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None
@@ -165,7 +165,7 @@ class SimulationObject:
         ), "SimulationObject y-coordinate is outside the world!"
         
         # Get the sim engine to reassign us to a neighbourhood.
-        self._sim_engine.assign_neighbourhood(self)
+        self._neighbourhood = self._sim_engine.assign_neighbourhood(self)
 
     def update_label(self, value):
         self._label = value
@@ -194,13 +194,16 @@ class SimulationObject:
             text_rect = text_surface.get_rect(center=self._pos)
             self._sim_engine.surface.blit(text_surface, text_rect)
 
+    def fix_collision(self, collision):
+        if not collision[0]: return
+        self._pos = np.subtract(self._pos, collision[1])
+
     def check_collision(self, other_object):
         """Check if we have collided with another SimulationObject.
         This currently only works with circles!
 
         Todo:
             Add bounding box checks first - may increase efficiency?
-            Use Spatial Hash approach to increaese efficiency.
 
         Args:
             other_object (SimulationObject): The object to check for collision.
@@ -272,15 +275,18 @@ class SimulationObject:
         # The _move_orbit function does everything else!
         self._move_orbit(0)
 
-    def get_nearest_neighbours(self):
+    def get_nearest_neighbours(self, n=None):
         """Get a sorted list of the SimulationObjects nearest to this object in the Simulation, along with their distances.
+
+         Args:
+            n (int): Number of neighbours to return. Default = all neighbours.
 
         Returns:
             list(tuple): The nearest SimulationObjects in the simulation, along with their distances: (neighbour, distance)
                         Contains all Agents within comms distance (3 agent diameters)
         """
         if not np.any(self._neighbourhood):
-            self._sim_engine.assign_neighbourhood(self)
+            self._neighbourhood = self._sim_engine.assign_neighbourhood(self)
 
         nearby_agents = self._sim_engine.get_nearby_objects(self._neighbourhood)
         neighbours = []
@@ -305,7 +311,12 @@ class SimulationObject:
 
         # Turn neighbours into numpy array, and sort based on distance.
         neighbours = np.array(neighbours)
-        return neighbours[neighbours[:, 1].argsort()]
+        neighbours = neighbours[neighbours[:, 1].argsort()]
+
+        # Only return the closest n objects.
+        if n is not None: neighbours = neighbours[0:n]
+        
+        return neighbours
 
     def get_orbit_object(self):
         """Return the object we're currently orbiting.

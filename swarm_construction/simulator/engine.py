@@ -50,6 +50,9 @@ class SimulationEngine:
 
         self.analytics_func = analytics_func
 
+        # Name of the shape file for use in analytics files
+        self.shape_name = None
+
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
 
@@ -68,7 +71,7 @@ class SimulationEngine:
         # each simulation object to immediately query it's neighbours.
 
         # Calculate the size of dimensions of each neighbourhood based on the agent radius.
-        neigh_width = self._objects[0]._radius * 8
+        neigh_width = self._objects[0]._radius * 4
         self._neighbourhood_dim = [neigh_width, neigh_width]
 
         # Calculate the number of neighbourhoods along each axis (x and y).
@@ -116,7 +119,7 @@ class SimulationEngine:
                     self.pause = not self.pause
                 if event.key == pg.K_a:
                     if not self.pause: return
-                    self.analytics_func();
+                    self.analytics_func()
         
         if self.pause:
             return
@@ -195,7 +198,7 @@ class SimulationEngine:
 
         # If we haven't changed neighbourhood, do nothing.
         if np.array_equal(sim_obj._neighbourhood, new_neighbourhood_idx):
-            return
+            return new_neighbourhood_idx
 
         # Remove the object from the old neighbourhood.
         old_x, old_y = sim_obj._neighbourhood
@@ -220,6 +223,7 @@ class SimulationEngine:
 
         # Set neighbourhood of object.
         sim_obj._neighbourhood = new_neighbourhood_idx
+        return new_neighbourhood_idx
 
     def get_nearby_objects(self, neighbourhood_coords):
         """Get all the simulation objects in a 3x3 square around the provided neighbourhood.
@@ -252,5 +256,4 @@ class SimulationEngine:
                 nearby = np.concatenate(
                     (nearby, self._neighbourhoods[target_x][target_y])
                 )
-
         return nearby

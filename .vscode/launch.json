@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Simulation",
       "type": "debugpy",
@@ -62,7 +63,13 @@
       "name": "Shape creation gui",
       "type": "debugpy",
       "request": "launch",
-      "module": "swarm_construction.shape.shape_create_gui"
+      "module": "swarm_construction.shape.shape_creator"
+    },
+    {
+      "name": "Greyscale Shape creation gui",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "swarm_construction.shape.shape_creator_gs"
     },
     {
       "name": "Localisation",

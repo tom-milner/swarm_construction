@@ -5,5 +5,6 @@ class Colour:
     light_green = (218, 247, 166)
     yellow = (255, 195, 0)
     orange = (255, 87, 51)
-    white = (255, 255, 255)
+    white = (248, 248, 248)
     light_blue = (173, 216, 230)
+    grey = (110, 110, 110)
