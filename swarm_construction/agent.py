@@ -158,10 +158,9 @@ class Agent(SimulationObject):
             # If we're not touching anything, do nothing.
             return
         
-        self.fix_collision(collision)
-
         # If we crash into an agent, stop moving for a bit.
         if closest[0].speed != 0:    
+            self.fix_collision(collision)
             return
         
 

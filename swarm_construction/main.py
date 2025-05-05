@@ -141,7 +141,7 @@ class SwarmConstructionSimulation:
         cluster_start = np.add(origin_agent, [-dx, dy])
 
         # Generate the agents in the cluster.
-        aspect_ratio = 1
+        aspect_ratio = 4/3
         for i in range(round(side_len / aspect_ratio)):
             # Every other row is nudged forwards, so the circles fit snuggly.
             x_offset = 0 if i % 2 == 0 else dx
@@ -294,10 +294,10 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.2 * self.sim.window_size, 0.5 * self.sim.window_size]
+        self.seed_origin = [0.2 * self.sim.window_size, 0.6 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.15
+        self.shape_area_proportion = 0.16
 
         self.place_shape("wrench_2.bmp")
         self.place_agents(300)
