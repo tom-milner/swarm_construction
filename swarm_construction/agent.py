@@ -227,11 +227,11 @@ class Agent(SimulationObject):
 
         # Their robots are constantly localising in the background. We only have one frame.
 
-        # Loop the localisation algorithm until the calculated position stops changing per neighbour.
-        # Once this happens 10 times and the position still isn't changing, we are localised (ish)
-        run_minimise = 0
         last_pos = pos
-        while run_minimise < 10:
+        
+        dist = 1
+        threshold = 0.001
+        while dist > threshold**2:
             for n in localised_neighbours:
                 agent = n[0]
                 measured_dist = n[1]
@@ -252,8 +252,6 @@ class Agent(SimulationObject):
                 new_pos = np.add(agent.local_pos, actual_vec)
 
                 # In the paper, they only move 1/4 of the way to the new position.
-                # For our simulation, this just slows down the minimisation, so we're not doing it.
-
                 # move towards new position
                 pos_diff = np.subtract(pos, new_pos) / 4
                 # pos_diff = np.subtract(pos, new_pos)
@@ -266,11 +264,6 @@ class Agent(SimulationObject):
             # This would usually be linalg.norm, but we omit the sqrt to improve performance.
             dist = diff_from_last[0] ** 2 + diff_from_last[1] ** 2
             last_pos = pos
-            threshold = 0.5
-            if dist < threshold**2:
-                run_minimise += 1
-            else:
-                run_minimise = 0
 
         # Add localisation noise to simulate real life.
         noise_threshold = 0.00
@@ -508,6 +501,10 @@ class Agent(SimulationObject):
         if neighbours[0][0].state == AgentState.LOCALISED and self.gradient > 1:
             self.state = AgentState.MOVING_OUTSIDE_SHAPE
 
+        # If we've been around the cluster twice without stopping, this shape is full, and we ned to find the next one.
+        if self.loops_around >= 2:
+            self.state = AgentState.BRIDGING
+
     def state_moving_outside_shape(self, fps):
         if self.mode == "monochrome":
             self.color = Colour.light_blue
@@ -521,14 +518,8 @@ class Agent(SimulationObject):
             self.state = AgentState.MOVING_INSIDE_SHAPE
             return
 
-        # If we touch an unlocalised agent, we're moving around the cluster.
-        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
-            self.loops_around += 1
-            self.state = AgentState.MOVING_AROUND_CLUSTER
-            return
-
-        # If we're touching the bottom seed, we're moving around the cluster.
-        if neighbours[0][0].is_bottom_seed:
+        # If we touch an unlocalised agent, or we're touching the bottom agent, we're moving around the cluster.
+        if len(neighbours) and (neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed):
             self.loops_around += 1
             self.state = AgentState.MOVING_AROUND_CLUSTER
             return
@@ -545,12 +536,6 @@ class Agent(SimulationObject):
         if self.assemble_shape() and self.gradient > 1:
             self.state = AgentState.LOCALISED
             self.speed = 0
-            return
-
-        # If we touch an unlocalised agent, we're moving around the cluster.
-        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
-            self.loops_around += 1
-            self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
     def state_localised(self, fps):
@@ -605,6 +590,3 @@ class Agent(SimulationObject):
                 self.state_localised(fps)
             case AgentState.BRIDGING:
                 self.state_bridging(fps)
-
-        if self.state != AgentState.BRIDGING and self.loops_around >= 2:
-            self.state = AgentState.BRIDGING

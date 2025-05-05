@@ -80,7 +80,7 @@ class SimulationEngine:
         # each simulation object to immediately query it's neighbours.
 
         # Calculate the size of dimensions of each neighbourhood based on the agent radius.
-        neigh_width = self._objects[0]._radius * 4
+        neigh_width = self._objects[0]._radius * 2 * 2
         self._neighbourhood_dim = [neigh_width, neigh_width]
 
         # Calculate the number of neighbourhoods along each axis (x and y).
@@ -160,20 +160,22 @@ class SimulationEngine:
             obj.draw()
 
         # Draw Neighbourhoods.
+        colour = Colour.orange
+        width = 2
         if self.draw_neighbourhoods:
             # Vertical Lines
             for i in range(self._neighbourhood_idx[0]):
                 x = i * self._neighbourhood_dim[0]
                 start = (x, 0)
                 end = (x, self.window_size)
-                pg.draw.line(self.surface, Colour.orange, start, end)
+                pg.draw.line(self.surface, colour, start, end, width=width)
 
             # Horizontal Lines
             for i in range(self._neighbourhood_idx[1]):
                 y = i * self._neighbourhood_dim[1]
                 start = (0, y)
                 end = (self.window_size, y)
-                pg.draw.line(self.surface, Colour.orange, start, end)
+                pg.draw.line(self.surface, colour, start, end, width=width)
 
         # Draw the simulation to the pygame window.
         pg.display.update()

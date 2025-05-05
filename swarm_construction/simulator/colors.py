@@ -7,4 +7,6 @@ class Colour:
     orange = (255, 87, 51)
     white = (248, 248, 248)
     light_blue = (173, 216, 230)
-    grey = (110, 110, 110)
+    grey = (110, 110, 110),
+    purple = (75,0,130),
+    magenta = (255,0,255)
