@@ -7,11 +7,12 @@ from enum import Enum
 
 
 class AgentState(Enum):
-    IDLE = (1,)
+    IDLE = (1,),
     MOVING_AROUND_CLUSTER = (2,)
     MOVING_OUTSIDE_SHAPE = (3,)
     MOVING_INSIDE_SHAPE = (4,)
     LOCALISED = 5,
+    BRIDGING = 6,
 
 
 class Agent(SimulationObject):
@@ -29,9 +30,10 @@ class Agent(SimulationObject):
     class Shape:
         """This is the agents internal shape representation, used in shape assembly"""
 
-        def __init__(self, shape, bottom_left):
+        def __init__(self, shape, bottom_left, centre_of_masses):
             self.shape_data = shape
             self.bottom_left = bottom_left
+            self.centre_of_masses = centre_of_masses
 
     def __init__(
         self,
@@ -60,6 +62,10 @@ class Agent(SimulationObject):
         self.is_seed = False
         self.state = AgentState.IDLE
         self.mode = mode
+        
+        self.loops_around = 0
+        self.is_bottom_seed = False
+        self.state_list = []
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
@@ -85,6 +91,16 @@ class Agent(SimulationObject):
             label=self.gradient,
         )
 
+        # Initialise agent-specific variables.
+        self.local_pos = local_pos
+        self.shape = shape
+
+        # bridging stuff
+        self.looped = 0
+        self.bridge = False
+        self.looped_updated = False
+        self.bridge_updated = False
+
     def start_edge_following(self, fps, neighbours):
         """Start edge following by checking for a bunch of conditions
 
@@ -94,7 +110,7 @@ class Agent(SimulationObject):
             fps (int): the sims current frame rate"""
 
         # get the nearest non-localised neighbours
-        neighbours = [n for n in neighbours if n[0].local_pos is None]
+        neighbours = [n for n in neighbours if n[0].state == AgentState.IDLE or n[0].speed != 0]
 
         # If there are no neighbours, start.
         if len(neighbours) == 0:
@@ -307,6 +323,7 @@ class Agent(SimulationObject):
         Args:
             neighbours (list(tuple)): List of tuples (neighbouring agent, distance)
         """
+
         # we only use the closest neighbours (ones we are touching or almost touching)
         neighbours = [n for n in neighbours if n[1] <= Agent.radius * 2.1]
 
@@ -371,7 +388,81 @@ class Agent(SimulationObject):
             return True
         
         return False
+    
+    def check_bridging(self, tolerance = 10):
+        """
+        Checks if self.local_pos lies within a given perpendicular distance (tolerance)
+        from any line segment connecting two COMs, and that the closest point lies
+        between the two COMs (not extended beyond them).
 
+        Args:
+            tolerance (float): Maximum allowed perpendicular distance to consider a bridge.
+
+        Returns:
+            bool: True if bridging condition is met, else False.
+        """
+        # arrays of current position and COMs
+        COMs = np.array(self.shape.centre_of_masses, dtype=np.float64)
+        pos = np.array(self.local_pos, dtype=np.float64)
+        # if there isnt another one, we cant bridge.
+        if len(COMs) < 2:
+            return None
+        # for now lets just consider the closest COM and find all the vectors to other ones
+        deltas = COMs - pos
+        distances = np.linalg.norm(deltas, axis=1)
+        closest_index = np.argmin(distances)
+
+        # go thro and check the other COMs
+        for i in range(len(COMs)):
+            A = COMs[i]
+            B = COMs[closest_index]
+            AB = B - A
+
+            # Skip if the same COMs
+            AB_len_sq = np.dot(AB, AB)
+            if AB_len_sq == 0:
+                continue  
+            
+            # project the point onto the segment
+            AP = pos - A
+            t = np.dot(AP, AB) / AB_len_sq
+
+            # Check if projection lies within the segment
+            if 0 <= t <= 1:  
+                closest_point = A + t * AB
+                # get perpendicular distance, return if in tolerance
+                dist = np.linalg.norm(pos - closest_point)
+                if dist <= tolerance:
+                    return COMs[i]
+
+        return None
+
+    def assemble_bridge(self):
+        """Bridge to an island if this one is already full!
+        Assumptions: closest COM is the shape we currently belong to."""
+        
+        # ain't localised, dont bridge
+        if self.local_pos is None:
+            return
+        
+        # We can bridge, lets check if possible
+        desired_COM = self.check_bridging(self.radius)
+        if desired_COM is not None and not self.bridge_updated:
+            # below this distance, we encourage bridging. Above, we discourage bridging
+            ideal_COM_distance = 50
+            # what is the average probability we should bridge
+            nominal_bridging_probability = 0.2
+            # calculate
+            dist = np.subtract(desired_COM, self.local_pos)
+            # p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(dist)) * nominal_bridging_probability * (self.loops_around-1))
+            p_bridging = 1
+            print(f"Loops: {self.loops_around}")
+            print(f"probability bridging at {self.local_pos} with distance of {np.linalg.norm(desired_COM)}: {p_bridging}")
+            if random.random() < p_bridging:
+                # print(f"we have bridged at local position {self.local_pos}, gobally at:{self._pos}")
+                # we are bridging, stop
+                return True
+    
     def state_idle(self, fps):
         self.speed = 0
         if self.mode == 'monochrome':
@@ -399,12 +490,13 @@ class Agent(SimulationObject):
         self.state_moving_around_cluster(fps)
 
     def state_moving_around_cluster(self, fps):
+
         self.speed = self.start_speed
         if self.mode == 'monochrome':
             self.color = Colour.white
 
         # Get closest neighbours.
-        neighbours = self.get_nearest_neighbours(3)
+        neighbours = self.get_nearest_neighbours()
         self.follow_edges(neighbours)
         self.update_gradient(neighbours)
 
@@ -415,20 +507,26 @@ class Agent(SimulationObject):
     def state_moving_outside_shape(self, fps):
         if self.mode == 'monochrome':
             self.color = Colour.light_blue
-        neighbours = self.get_nearest_neighbours(3)
+        neighbours = self.get_nearest_neighbours()
 
         self.follow_edges(neighbours)
         self.localise(neighbours)
         self.update_gradient(neighbours)
-
-        # If we touch an unlocalised agent, we're outside the seeds.
-        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
-            self.state = AgentState.MOVING_AROUND_CLUSTER
-            return
-
         
         if self.is_inside_shape() and self.gradient > 1:
             self.state = AgentState.MOVING_INSIDE_SHAPE
+            return
+        
+        # If we touch an unlocalised agent, we're moving around the cluster.
+        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:    
+            self.loops_around += 1
+            self.state = AgentState.MOVING_AROUND_CLUSTER
+            return
+        
+        # If we're touching the bottom seed, we're moving around the cluster.
+        if neighbours[0][0].is_bottom_seed:
+            self.loops_around += 1
+            self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
     def state_moving_inside_shape(self, fps):
@@ -445,8 +543,9 @@ class Agent(SimulationObject):
             self.speed = 0
             return
         
-        # If we touch an unlocalised agent, we're outside the seeds.
-        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:
+        # If we touch an unlocalised agent, we're moving around the cluster.
+        if len(neighbours) and neighbours[0][0].state == AgentState.IDLE:    
+            self.loops_around += 1
             self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
@@ -455,6 +554,29 @@ class Agent(SimulationObject):
         if not self.is_seed:
             if self.mode == 'monochrome':
                 self.color = Colour.orange
+
+    def state_bridging(self, fps):
+        if self.mode == 'monochrome':
+            self.color = self.color = Colour.red
+        # Get closest neighbours.
+        neighbours = self.get_nearest_neighbours()
+        self.follow_edges(neighbours)
+        self.localise(neighbours)
+        self.update_gradient(neighbours)
+
+        if neighbours[0][0].is_bottom_seed:
+            self.loops_around += 1
+
+        if self.is_inside_shape():
+            self.state = AgentState.MOVING_INSIDE_SHAPE
+            self.loops_around = 0
+            return
+        
+        if self.assemble_bridge():
+            self.state = AgentState.LOCALISED
+            self.loops_around = 0
+            self.speed = 0
+            return
 
     def update(self, fps):
         """Update the agents state each frame. This is where the rules are implemented.
@@ -465,7 +587,7 @@ class Agent(SimulationObject):
 
         # Update the underlying SimulationObject.
         super().update(fps)
-
+        
         match self.state:
             case AgentState.IDLE:
                 self.state_idle(fps)
@@ -477,4 +599,8 @@ class Agent(SimulationObject):
                 self.state_moving_inside_shape(fps)
             case AgentState.LOCALISED:
                 self.state_localised(fps)
+            case AgentState.BRIDGING:
+                self.state_bridging(fps)
 
+        if self.state != AgentState.BRIDGING and self.loops_around >= 2:
+            self.state = AgentState.BRIDGING
