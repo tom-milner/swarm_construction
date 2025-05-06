@@ -92,8 +92,11 @@ The simulation supports the following keyboard commands:
 - `esc` --> Quit the simulation.
 
 ### Changing Parameters
-To tweak the situation, you can change the following parameters:
-- Number of agents
+To tweak the situation, you can change the following parameters in `main.py`:
+- Number of agents - `num_agents`
+- Simulation shape file - `shape_file`
+
+Agent parameters can be found in `agent.py`. 
 
 ## Documentation
 For documentation, see the `/docs` directory [here](./docs/readme.md).
