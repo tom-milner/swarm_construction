@@ -446,11 +446,11 @@ class Agent(SimulationObject):
             # below this distance, we encourage bridging. Above, we discourage bridging
             ideal_COM_distance = 50
             # what is the average probability we should bridge
-            nominal_bridging_probability = 0.2
+            nominal_bridging_probability = 0.1
             # calculate
             dist = np.subtract(desired_COM, self.local_pos)
-            # p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(dist)) * nominal_bridging_probability * (self.loops_around-1))
-            p_bridging = 1
+            p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(dist)) * nominal_bridging_probability * (self.loops_around-1))
+            #p_bridging = 1
             print(f"Loops: {self.loops_around}")
             print(
                 f"probability bridging at {self.local_pos} with distance of {np.linalg.norm(desired_COM)}: {p_bridging}"
