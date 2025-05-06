@@ -50,7 +50,7 @@ class SimulationObject:
         self._pos = pos
         self._radius = int(radius)
         self._comms_radius = (
-            radius * 2 * 3
+            radius * 2 * 4
         )  # based on KiloBot communications distance 'Kilobot: A Low Cost Scalable Robot System for Collective Behaviors'
         self._direction = direction
         self._orbit_object = None

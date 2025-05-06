@@ -65,7 +65,6 @@ class Agent(SimulationObject):
 
         self.loops_around = 0
         self.is_bottom_seed = False
-        self.state_list = []
 
         if local_pos is not None:
             # Seed robots are stationary and green and have gradient of 0.
@@ -94,12 +93,6 @@ class Agent(SimulationObject):
         # Initialise agent-specific variables.
         self.local_pos = local_pos
         self.shape = shape
-
-        # bridging stuff
-        self.looped = 0
-        self.bridge = False
-        self.looped_updated = False
-        self.bridge_updated = False
 
     def start_edge_following(self, fps, neighbours):
         """Start edge following by checking for a bunch of conditions
@@ -442,7 +435,7 @@ class Agent(SimulationObject):
 
         # We can bridge, lets check if possible
         desired_COM = self.check_bridging(self.radius)
-        if desired_COM is not None and not self.bridge_updated:
+        if desired_COM is not None:
             # below this distance, we encourage bridging. Above, we discourage bridging
             ideal_COM_distance = 50
             # what is the average probability we should bridge
@@ -501,9 +494,9 @@ class Agent(SimulationObject):
         if neighbours[0][0].state == AgentState.LOCALISED and self.gradient > 1:
             self.state = AgentState.MOVING_OUTSIDE_SHAPE
 
-        # If we've been around the cluster twice without stopping, this shape is full, and we ned to find the next one.
-        if self.loops_around >= 2:
-            self.state = AgentState.BRIDGING
+            # If we've been around the cluster twice without stopping, this shape is full, and we ned to find the next one.
+            if self.loops_around >= 2:
+                self.state = AgentState.BRIDGING
 
     def state_moving_outside_shape(self, fps):
         if self.mode == "monochrome":
@@ -565,6 +558,12 @@ class Agent(SimulationObject):
             self.state = AgentState.LOCALISED
             self.loops_around = 0
             self.speed = 0
+            return
+
+        #  If we touch an unlocalised agent, or we're touching the bottom agent, we're moving around the cluster.
+        if len(neighbours) and (neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed):
+            self.loops_around += 1
+            self.state = AgentState.MOVING_AROUND_CLUSTER
             return
 
     def update(self, fps):

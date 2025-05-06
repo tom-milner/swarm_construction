@@ -80,7 +80,7 @@ class SimulationEngine:
         # each simulation object to immediately query it's neighbours.
 
         # Calculate the size of dimensions of each neighbourhood based on the agent radius.
-        neigh_width = self._objects[0]._radius * 2 * 2
+        neigh_width = self._objects[0]._radius * 2 * 4
         self._neighbourhood_dim = [neigh_width, neigh_width]
 
         # Calculate the number of neighbourhoods along each axis (x and y).
