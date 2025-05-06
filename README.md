@@ -48,6 +48,7 @@ If you have Poetry installed, follow the [Poetry install guide](#install-guide--
 
 
 ### Install Guide - Pip
+Recommended practice is to use a virtual environment for `pip` and `Python` - see [here](https://docs.python.org/3/library/venv.html).
 
 1. [Install pip](https://pip.pypa.io/en/stable/installation/), if it is not already installed.
 2. Install the project requirements using `pip install -r requirements.txt`.
