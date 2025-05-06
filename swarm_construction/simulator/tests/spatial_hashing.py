@@ -11,7 +11,7 @@ class Test:
     def update(self, fps):
         if fps == 0:
             return
-        curr_agent = self.objects[55]
+        curr_agent = self.objects[45]
         curr_agent.color = Colour.light_green
         nearby_agents = self.sim.get_nearby_objects(curr_agent._neighbourhood)
         for a in nearby_agents:
@@ -20,19 +20,20 @@ class Test:
             a.color = Colour.light_blue
 
     def draw(self):
-        # Vertical Lines
-        for i in range(self.sim._neighbourhood_idx[0]):
-            x = i * self.sim._neighbourhood_dim[0]
-            start = (x, 0)
-            end = (x, self.sim.window_size)
-            pg.draw.line(self.sim.surface, Colour.orange, start, end)
+        pass
+        # # Vertical Lines
+        # for i in range(self.sim._neighbourhood_idx[0]):
+        #     x = i * self.sim._neighbourhood_dim[0]
+        #     start = (x, 0)
+        #     end = (x, self.sim.window_size)
+        #     pg.draw.line(self.sim.surface, Colour.orange, start, end)
 
-        # Horizontal Lines
-        for i in range(self.sim._neighbourhood_idx[1]):
-            y = i * self.sim._neighbourhood_dim[1]
-            start = (0, y)
-            end = (self.sim.window_size, y)
-            pg.draw.line(self.sim.surface, Colour.orange, start, end)
+        # # Horizontal Lines
+        # for i in range(self.sim._neighbourhood_idx[1]):
+        #     y = i * self.sim._neighbourhood_dim[1]
+        #     start = (0, y)
+        #     end = (self.sim.window_size, y)
+        #     pg.draw.line(self.sim.surface, Colour.orange, start, end)
 
     def __init__(self):
         self.objects = []
