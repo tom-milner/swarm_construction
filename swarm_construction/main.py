@@ -289,7 +289,7 @@ class SwarmConstructionSimulation:
         ana_suite = Analytics(self.sim, self.seed_origin)
         # Pass in True for figures to save as .eps
         # False for no saving
-        ana_suite.run_analytics(True)
+        ana_suite.run_analytics(False)
 
     def get_islands(self, bmp_shape):
         """
@@ -345,10 +345,10 @@ class SwarmConstructionSimulation:
         self.seed_origin = [0.25 * self.sim.window_size, 0.55 * self.sim.window_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.1
+        self.shape_area_proportion = 0.13
 
-        self.place_shape("big_bridge_test.bmp")
-        self.place_agents(200)
+        self.place_shape("swarm_construction\shape\wrench.bmp")
+        self.place_agents(300)
 
         self.sim.run()
 
