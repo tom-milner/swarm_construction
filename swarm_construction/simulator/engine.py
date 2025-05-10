@@ -2,11 +2,11 @@ import pygame as pg
 import math
 import numpy as np
 from swarm_construction.simulator.colors import Colour
+from swarm_construction.simulator.display import Display
 
 # A NOTE ON THE PYGAME COORDINATE SYSTEM
 # pygame sets (0,0) as the top left corner. As such, a direction of
 # 0 points straight down. How irritating is that.
-
 
 def do_nothing():
     pass
@@ -18,6 +18,7 @@ class SimulationEngine:
     def __init__(
         self,
         title,
+        game_size,
         window_size,
         draw_rate=30,
         update_rate=100,
@@ -27,18 +28,15 @@ class SimulationEngine:
 
         Args:
             title (string): The title of the simulation.
-            window_size (int): The length of each side of the square window.
+            game_size (int): The length of each side of the square window.
         """
-        self.title = title
-        self.window_size = window_size
 
-        # Initialise pygame.
-        pg.init()
+        # Initialise pygame display.
+        self.game_size = game_size
+        self.display = Display(title, window_size, game_size);
         self.clock = pg.time.Clock()
-        pg.display.set_caption(self.title)
-
+        
         # Initialise simulation.
-        self.surface = pg.display.set_mode((self.window_size, self.window_size))
         self.running = False
         self.pause = False
         self.draw_neighbourhoods = False
@@ -61,6 +59,8 @@ class SimulationEngine:
 
         # Name of the shape file for use in analytics files
         self.shape_name = None
+
+        
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
@@ -85,7 +85,7 @@ class SimulationEngine:
 
         # Calculate the number of neighbourhoods along each axis (x and y).
         self._neighbourhood_idx = np.astype(
-            np.ceil(np.divide(self.window_size, self._neighbourhood_dim)), int
+            np.ceil(np.divide(self.game_size, self._neighbourhood_dim)), int
         )
 
         # Generate neighbourhoods. Each neighbourhood is a np array.
@@ -149,7 +149,7 @@ class SimulationEngine:
         """Draw the current frame of the simulation. No simulation logic should happen here!"""
 
         # Draw background.
-        self.surface.fill((0, 0, 0))
+        self.display.clear((0, 0, 0))
 
         # Call draw handlers.
         for handler in self.draw_handlers:
@@ -167,18 +167,18 @@ class SimulationEngine:
             for i in range(self._neighbourhood_idx[0]):
                 x = i * self._neighbourhood_dim[0]
                 start = (x, 0)
-                end = (x, self.window_size)
-                pg.draw.line(self.surface, colour, start, end, width=width)
+                end = (x, self.game_size)
+                self.display.draw_line(colour, start, end, width=width)
 
             # Horizontal Lines
             for i in range(self._neighbourhood_idx[1]):
                 y = i * self._neighbourhood_dim[1]
                 start = (0, y)
-                end = (self.window_size, y)
-                pg.draw.line(self.surface, colour, start, end, width=width)
+                end = (self.game_size, y)
+                self.display.draw_line(colour, start, end, width=width)
 
         # Draw the simulation to the pygame window.
-        pg.display.update()
+        self.display.update()
 
     def add_update(self, handler):
         """Add an update handler to the simulation. This will be called once every game loop. Update handlers are logic only - no drawing should happen in the handler.
@@ -270,3 +270,5 @@ class SimulationEngine:
                     (nearby, self._neighbourhoods[target_x][target_y])
                 )
         return nearby
+    
+    # Map the simulation coordinates to the pygame window.

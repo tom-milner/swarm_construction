@@ -82,7 +82,7 @@ class Test:
         # Setup the simulation
         self.sim = SimulationEngine("SimulationObject Edge Following", 800)
 
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
         radius = 10
         self.cluster = self._generate_cluster(middle, radius)
         print(f"Number of cluster objects: {len(self.cluster)}")

@@ -22,7 +22,7 @@ class Test:
         self.sim = SimulationEngine("Movement Test", 800)
 
         # Add one agent.
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
         self.new_agent = SimulationObject(self.sim, [middle, middle])
 
         self.delta = 4

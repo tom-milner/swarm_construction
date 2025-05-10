@@ -41,13 +41,13 @@ class Test:
     def run(self):
         # Setup the simulation
         self.sim = SimulationEngine("Agent Edge Following Test", 800)
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
 
         # Add stationary agents.
         self._generate_cluster(middle, Agent.radius)
 
         # Add one moving agent.
-        new_agent = Agent(self.sim, [middle, self.sim.window_size - 1])
+        new_agent = Agent(self.sim, [middle, self.sim.game_size - 1])
         new_agent.speed = 100
 
         # Run the simulation.

@@ -14,7 +14,7 @@ class Test:
         # Setup the simulation
         self.sim = SimulationEngine("Single Orbit Test", 800)
         # Add agents
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
         radius = 30
 
         sun = SimulationObject(

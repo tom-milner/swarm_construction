@@ -93,7 +93,7 @@ class Test:
         self.sim = SimulationEngine(
             "Localisation Test", 800, analytics_func=self.run_analytics
         )
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
 
         # Setup seed agents.
         Agent.radius = 30

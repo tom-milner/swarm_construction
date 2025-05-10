@@ -12,11 +12,11 @@ from PIL import Image
 class Test:
     """The entry point for the shape-constructing-swarm simulation."""
 
-    def calculate_agent_radius(self, window_size, num_agents):
+    def calculate_agent_radius(self, game_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
 
         Args:
-            window_size (int): Length of each side of the (square) window.
+            game_size (int): Length of each side of the (square) window.
             num_agents (int): Number of agents to fit in the window.
 
         Returns:
@@ -24,7 +24,7 @@ class Test:
         """
 
         # Make area of agents same as the shape area.
-        window_area = window_size**2
+        window_area = game_size**2
         total_agent_area = window_area * self.shape_area_proportion
         agent_area = total_agent_area / num_agents
 
@@ -80,7 +80,7 @@ class Test:
         """Generate and place agents in the simulation."""
 
         # Calculate how big we can make the agents given our current window size.
-        Agent.radius = self.calculate_agent_radius(self.sim.window_size, 5)
+        Agent.radius = self.calculate_agent_radius(self.sim.game_size, 5)
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * Agent.radius))
         column_spacing = Agent.radius
 
@@ -104,7 +104,7 @@ class Test:
 
     def place_shape(self, shape_file):
 
-        window_area = self.sim.window_size**2
+        window_area = self.sim.game_size**2
         goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
@@ -163,7 +163,7 @@ class Test:
             "Localisation Test", 800, analytics_func=self.run_analytics
         )
         # origin of the seed agents
-        self.seed_origin = [0.3 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.3 * self.sim.game_size, 0.6 * self.sim.game_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.05

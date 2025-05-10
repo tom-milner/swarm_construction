@@ -14,12 +14,13 @@ class SimulationShape:
 
         # converts PIL image to a format pygame can use
         conv_shape = self.shape.convert("RGB").tobytes()
+
         # stores the pygame image so for use in draw()
-        self.pgshape = pg.image.fromstring(conv_shape, self.shape.size, "RGB")
+        self.display_shape = sim_engine.display.image_from_string(conv_shape, self.shape.size, "RGB")
 
         # adds draw() method to the sim engine
         self._sim_engine.add_draw(self.draw)
 
     def draw(self):
         # draws the shape
-        self._sim_engine.surface.blit(self.pgshape, self.origin_pos)
+        self._sim_engine.display.blit(self.display_shape, self.origin_pos)

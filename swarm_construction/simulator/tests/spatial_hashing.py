@@ -21,19 +21,6 @@ class Test:
 
     def draw(self):
         pass
-        # # Vertical Lines
-        # for i in range(self.sim._neighbourhood_idx[0]):
-        #     x = i * self.sim._neighbourhood_dim[0]
-        #     start = (x, 0)
-        #     end = (x, self.sim.window_size)
-        #     pg.draw.line(self.sim.surface, Colour.orange, start, end)
-
-        # # Horizontal Lines
-        # for i in range(self.sim._neighbourhood_idx[1]):
-        #     y = i * self.sim._neighbourhood_dim[1]
-        #     start = (0, y)
-        #     end = (self.sim.window_size, y)
-        #     pg.draw.line(self.sim.surface, Colour.orange, start, end)
 
     def __init__(self):
         self.objects = []
@@ -61,7 +48,7 @@ class Test:
     def run(self):
         # Setup the simulation
         self.sim = SimulationEngine("Spatial Hashing", 800)
-        middle = self.sim.window_size / 2
+        middle = self.sim.game_size / 2
         radius = 30
         side_length = 10
         self.cluster = self._generate_cluster(middle, radius, side_length)

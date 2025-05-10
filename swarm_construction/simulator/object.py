@@ -159,10 +159,10 @@ class SimulationObject:
             self._move_vector(pixels_per_frame)
 
         assert (
-            self._pos[0] < self._sim_engine.window_size
+            self._pos[0] < self._sim_engine.game_size
         ), "SimulationObject x-coordinate is outside the world!"
         assert (
-            self._pos[1] < self._sim_engine.window_size
+            self._pos[1] < self._sim_engine.game_size
         ), "SimulationObject y-coordinate is outside the world!"
 
         # Get the sim engine to reassign us to a neighbourhood.
@@ -177,7 +177,7 @@ class SimulationObject:
         """
 
         # Draw a circle around the position coordinate.
-        pg.draw.circle(self._sim_engine.surface, self.color, self._pos, self._radius)
+        self._sim_engine.display.draw_circle(self.color, self._pos, self._radius)
 
         # Draw a line to indicate the circles current direction.
         line_end = (
@@ -185,7 +185,7 @@ class SimulationObject:
             * self._radius
         )
         line_end = np.add(line_end, self._pos)
-        pg.draw.line(self._sim_engine.surface, Colour.red, self._pos, line_end)
+        self._sim_engine.display.draw_line(Colour.red, self._pos, line_end)
 
         # Add the label at the centre of the circle
         if self.label is not None:
@@ -193,7 +193,7 @@ class SimulationObject:
                 str(self.label), True, (0, 0, 0)
             )  # Black text
             text_rect = text_surface.get_rect(center=self._pos)
-            self._sim_engine.surface.blit(text_surface, text_rect)
+            self._sim_engine.display.blit(text_surface, text_rect)
 
     def fix_collision(self, collision):
         if not collision[0]:

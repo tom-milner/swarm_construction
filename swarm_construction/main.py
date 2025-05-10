@@ -21,11 +21,11 @@ class SwarmConstructionSimulation:
     shape_file = "swarm_construction/shape/wrench.bmp"
 
 
-    def calculate_agent_radius(self, window_size, num_agents):
+    def calculate_agent_radius(self, game_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
 
         Args:
-            window_size (int): Length of each side of the (square) window.
+            game_size (int): Length of each side of the (square) window.
 
             num_agents (int): Number of agents to fit in the window.
 
@@ -33,7 +33,7 @@ class SwarmConstructionSimulation:
             int: Calculated agent radius.
         """
 
-        window_area = window_size**2
+        window_area = game_size**2
         total_agent_area = window_area * (self.shape_area_proportion + 0.005)
         agent_area = total_agent_area / num_agents
 
@@ -195,7 +195,7 @@ class SwarmConstructionSimulation:
 
         """
         # Calculate how big we can make the agents given our current window size.
-        Agent.radius = self.calculate_agent_radius(self.sim.window_size, num_agents)
+        Agent.radius = self.calculate_agent_radius(self.sim.game_size, num_agents)
 
         # Because our agents are circular, we can make them fit snuggly together if we
         # slot each row of agents into the gaps between agents in the previous row.
@@ -223,7 +223,7 @@ class SwarmConstructionSimulation:
 
     def place_shape(self, shape_file):
 
-        window_area = self.sim.window_size**2
+        window_area = self.sim.game_size**2
         goal_shape_area = window_area * self.shape_area_proportion
 
         # this whole thing scales the inputted shape file to match the robot area
@@ -353,15 +353,17 @@ class SwarmConstructionSimulation:
 
         self.sim = SimulationEngine(
             "Swarm Construction",
-            800,
+            game_size = 800,
+            window_size = 400,
             draw_rate=30,
             update_rate=update_rate,
             analytics_func=self.run_analytics,
         )
+        
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.21 * self.sim.window_size, 0.6 * self.sim.window_size]
+        self.seed_origin = [0.21 * self.sim.game_size, 0.6 * self.sim.game_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1

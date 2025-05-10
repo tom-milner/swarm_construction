@@ -18,8 +18,8 @@ class Analytics:
 
         # Sets the axis limits for the plots
         self.axis_x_min = -1 * seed_origin[0]
-        self.axis_x_max = self._sim_engine.window_size - seed_origin[0]
-        self.axis_y_min = -1 * (self._sim_engine.window_size - seed_origin[1]) * 0.5
+        self.axis_x_max = self._sim_engine.game_size - seed_origin[0]
+        self.axis_y_min = -1 * (self._sim_engine.game_size - seed_origin[1]) * 0.5
         self.axis_y_max = seed_origin[1]
 
         self.filename_base = (
