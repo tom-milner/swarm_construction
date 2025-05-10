@@ -284,7 +284,7 @@ class Analytics:
                 verticalalignment="bottom",
                 transform=ax1.transAxes,
             )
-            
+
             fig2, ax2 = plt.subplots()
             grad_errors = self.localisation_err_gradient()
             gradients = np.arange(len(grad_errors))

@@ -24,7 +24,7 @@ class Agent(SimulationObject):
     # Defaults
     radius: int = 10
     speed: int = 0
-    start_speed = 100
+    start_speed = 10 # body lengths per second.
     average_start_time = 1
 
     class Shape:
@@ -221,7 +221,7 @@ class Agent(SimulationObject):
         # Their robots are constantly localising in the background. We only have one frame.
 
         last_pos = pos
-        
+
         dist = 1
         threshold = 0.001
         while dist > threshold**2:
@@ -442,8 +442,12 @@ class Agent(SimulationObject):
             nominal_bridging_probability = 0.1
             # calculate
             dist = np.subtract(desired_COM, self.local_pos)
-            p_bridging = np.clip((ideal_COM_distance / np.linalg.norm(dist)) * nominal_bridging_probability * (self.loops_around-1))
-            #p_bridging = 1
+            p_bridging = np.clip(
+                (ideal_COM_distance / np.linalg.norm(dist))
+                * nominal_bridging_probability
+                * (self.loops_around - 1)
+            )
+            # p_bridging = 1
             print(f"Loops: {self.loops_around}")
             print(
                 f"probability bridging at {self.local_pos} with distance of {np.linalg.norm(desired_COM)}: {p_bridging}"
@@ -512,7 +516,9 @@ class Agent(SimulationObject):
             return
 
         # If we touch an unlocalised agent, or we're touching the bottom agent, we're moving around the cluster.
-        if len(neighbours) and (neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed):
+        if len(neighbours) and (
+            neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed
+        ):
             self.loops_around += 1
             self.state = AgentState.MOVING_AROUND_CLUSTER
             return
@@ -561,7 +567,9 @@ class Agent(SimulationObject):
             return
 
         #  If we touch an unlocalised agent, or we're touching the bottom agent, we're moving around the cluster.
-        if len(neighbours) and (neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed):
+        if len(neighbours) and (
+            neighbours[0][0].state == AgentState.IDLE or neighbours[0][0].is_bottom_seed
+        ):
             self.loops_around += 1
             self.state = AgentState.MOVING_AROUND_CLUSTER
             return

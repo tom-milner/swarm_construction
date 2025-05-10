@@ -69,9 +69,6 @@ class SimulationObject:
         # The neighbourhood we're currently in.
         self._neighbourhood = [None, None]
 
-        # The font to use for writing the labels.
-        self._font = pg.font.SysFont("Arial", self._radius)  # Font size = agent radius
-
         # Add ourselves to the SimulationEngine. The simulation engine will automatically update and draw us.
         # it will also automatically set the neighbourhood.
         self._sim_engine._objects.append(self)
@@ -149,7 +146,7 @@ class SimulationObject:
             return
 
         # Calculate the number of pixels we must move per frame, in order to produce the desired speed.
-        pixels_per_frame = self.speed / fps
+        pixels_per_frame = (self.speed * self._radius) / fps
 
         # If we are orbiting an object, continue that orbit.
         if self._orbit_object:
@@ -189,11 +186,7 @@ class SimulationObject:
 
         # Add the label at the centre of the circle
         if self.label is not None:
-            text_surface = self._font.render(
-                str(self.label), True, (0, 0, 0)
-            )  # Black text
-            text_rect = text_surface.get_rect(center=self._pos)
-            self._sim_engine.display.blit(text_surface, text_rect)
+            self._sim_engine.display.draw_text(self.label, self._pos)
 
     def fix_collision(self, collision):
         if not collision[0]:

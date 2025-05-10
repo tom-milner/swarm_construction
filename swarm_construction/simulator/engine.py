@@ -8,6 +8,7 @@ from swarm_construction.simulator.display import Display
 # pygame sets (0,0) as the top left corner. As such, a direction of
 # 0 points straight down. How irritating is that.
 
+
 def do_nothing():
     pass
 
@@ -33,9 +34,9 @@ class SimulationEngine:
 
         # Initialise pygame display.
         self.game_size = game_size
-        self.display = Display(title, window_size, game_size);
+        self.display = Display(title, window_size, game_size, 8)
         self.clock = pg.time.Clock()
-        
+
         # Initialise simulation.
         self.running = False
         self.pause = False
@@ -59,8 +60,6 @@ class SimulationEngine:
 
         # Name of the shape file for use in analytics files
         self.shape_name = None
-
-        
 
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
@@ -101,8 +100,14 @@ class SimulationEngine:
         self.running = True
         while self.running:
 
+            fps = self.clock.get_fps()
             self.clock.tick(self._update_rate)
-            self.update()
+
+            # Supply the handlers with the current fps for accurate physics.        
+            time_warp = 1
+            fps /= time_warp
+
+            self.update(fps)
 
             count += 1
             if count == draw_frame_count:
@@ -111,7 +116,7 @@ class SimulationEngine:
 
         pg.quit()
 
-    def update(self):
+    def update(self, fps):
         """Update the simulation for the current frame. Update is LOGIC ONLY - no drawing!"""
 
         # First, handle any pygame events.
@@ -133,9 +138,6 @@ class SimulationEngine:
 
         if self.pause:
             return
-
-        # Supply the handlers with the current fps for accurate physics.
-        fps = self.clock.get_fps()
 
         # Call any extra update handlers.
         for handler in self.update_handlers:
@@ -270,5 +272,5 @@ class SimulationEngine:
                     (nearby, self._neighbourhoods[target_x][target_y])
                 )
         return nearby
-    
+
     # Map the simulation coordinates to the pygame window.

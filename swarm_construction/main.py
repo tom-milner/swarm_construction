@@ -11,15 +11,15 @@ import cv2
 import random
 from pathlib import Path
 
+
 class SwarmConstructionSimulation:
     """The entry point for the shape-constructing-swarm simulation."""
-    
+
     # Number of agents in the simulation.
     num_agents = 300
 
     # The shape file to use in the simulation.
     shape_file = "swarm_construction/shape/wrench.bmp"
-
 
     def calculate_agent_radius(self, game_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
@@ -100,9 +100,9 @@ class SwarmConstructionSimulation:
 
         Args:
             line_spacing (int): Number of pixels between lines (along y-axis) to ensure a snug fit.
-            
+
             column_spacing (int): Number of pixels between columns (along x-axis) to ensure a snug fit.
-            
+
             origin_agent (list): [x,y] position of the agent to build the connecting agents around.
 
         Returns:
@@ -353,13 +353,13 @@ class SwarmConstructionSimulation:
 
         self.sim = SimulationEngine(
             "Swarm Construction",
-            game_size = 800,
-            window_size = 400,
+            game_size=800,
+            window_size=800,
             draw_rate=30,
             update_rate=update_rate,
-            analytics_func=self.run_analytics,
+            analytics_func=self.run_analytics
         )
-        
+
         self.agents = []
 
         # origin of the seed agents
@@ -367,7 +367,7 @@ class SwarmConstructionSimulation:
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.1
-        
+
         self.place_shape(self.shape_file)
         self.place_agents(self.num_agents)
 

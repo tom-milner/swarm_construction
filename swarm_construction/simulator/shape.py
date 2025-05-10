@@ -16,7 +16,9 @@ class SimulationShape:
         conv_shape = self.shape.convert("RGB").tobytes()
 
         # stores the pygame image so for use in draw()
-        self.display_shape = sim_engine.display.image_from_string(conv_shape, self.shape.size, "RGB")
+        self.display_shape = sim_engine.display.image_from_string(
+            conv_shape, self.shape.size, "RGB"
+        )
 
         # adds draw() method to the sim engine
         self._sim_engine.add_draw(self.draw)
