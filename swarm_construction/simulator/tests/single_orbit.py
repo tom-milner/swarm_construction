@@ -22,12 +22,12 @@ class Test:
         )
 
         planet = SimulationObject(
-            self.sim, radius=radius, speed=100, color=Colour.yellow
+            self.sim, radius=radius, speed=4, color=Colour.yellow
         )
         planet.set_orbit_object(sun, orbit_direction=OrbitDirection.ANTI_CLOCKWISE)
 
         moon = SimulationObject(
-            self.sim, radius=radius * 0.5, speed=150, color=Colour.light_green
+            self.sim, radius=radius * 0.5, speed=5, color=Colour.light_green
         )
         moon.set_orbit_object(planet)
 

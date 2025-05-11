@@ -20,7 +20,7 @@ class SimulationEngine:
         self,
         title,
         game_size,
-        window_size,
+        window_size=None,
         draw_rate=30,
         update_rate=100,
         analytics_func=do_nothing,
@@ -34,6 +34,8 @@ class SimulationEngine:
 
         # Initialise pygame display.
         self.game_size = game_size
+        if window_size is None:
+            window_size = self.game_size
         self.display = Display(title, window_size, game_size, 8)
         self.clock = pg.time.Clock()
 
@@ -61,6 +63,11 @@ class SimulationEngine:
         # Name of the shape file for use in analytics files
         self.shape_name = None
 
+        # Size of each neighbourhood (tuple)
+        self.neighbourhood_dim = None
+
+        self.background_color = Colour.white
+
     def run(self):
         """Run the main game loop. This runs until the "running" flag is set to False.
 
@@ -79,12 +86,13 @@ class SimulationEngine:
         # each simulation object to immediately query it's neighbours.
 
         # Calculate the size of dimensions of each neighbourhood based on the agent radius.
-        neigh_width = self._objects[0]._radius * 2 * 4
-        self._neighbourhood_dim = [neigh_width, neigh_width]
+        if self.neighbourhood_dim is None:
+            neigh_width = self._objects[0]._radius * 2 * 4
+            self.neighbourhood_dim = [neigh_width, neigh_width]
 
         # Calculate the number of neighbourhoods along each axis (x and y).
         self._neighbourhood_idx = np.astype(
-            np.ceil(np.divide(self.game_size, self._neighbourhood_dim)), int
+            np.ceil(np.divide(self.game_size, self.neighbourhood_dim)), int
         )
 
         # Generate neighbourhoods. Each neighbourhood is a np array.
@@ -151,7 +159,7 @@ class SimulationEngine:
         """Draw the current frame of the simulation. No simulation logic should happen here!"""
 
         # Draw background.
-        self.display.clear((0, 0, 0))
+        self.display.clear(self.background_color)
 
         # Call draw handlers.
         for handler in self.draw_handlers:
@@ -167,14 +175,14 @@ class SimulationEngine:
         if self.draw_neighbourhoods:
             # Vertical Lines
             for i in range(self._neighbourhood_idx[0]):
-                x = i * self._neighbourhood_dim[0]
+                x = i * self.neighbourhood_dim[0]
                 start = (x, 0)
                 end = (x, self.game_size)
                 self.display.draw_line(colour, start, end, width=width)
 
             # Horizontal Lines
             for i in range(self._neighbourhood_idx[1]):
-                y = i * self._neighbourhood_dim[1]
+                y = i * self.neighbourhood_dim[1]
                 start = (0, y)
                 end = (self.game_size, y)
                 self.display.draw_line(colour, start, end, width=width)
@@ -207,7 +215,7 @@ class SimulationEngine:
         """
         # Calculate what neighbourhood this object is in.
         new_neighbourhood_idx = np.astype(
-            np.divide(sim_obj._pos, self._neighbourhood_dim), int
+            np.divide(sim_obj._pos, self.neighbourhood_dim), int
         )
 
         # If we haven't changed neighbourhood, do nothing.

@@ -29,10 +29,6 @@ class Test:
             # Start orbiting the new object!
             self.follower.set_orbit_object(cluster_object)
 
-            # gradually speed up the follower because it's fun
-            if self.follower.speed < 200:
-                self.follower.speed += 10
-
             break
 
     def draw(self):
@@ -44,8 +40,8 @@ class Test:
 
     def _generate_cluster(self, middle, radius):
         cluster = []
-        num_rows = 32
-        num_cols = 32
+        num_rows = 4
+        num_cols = 4
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * radius))
         start = [middle - num_cols * radius, middle - num_rows * radius]
 
@@ -64,17 +60,17 @@ class Test:
         i += 1
 
         # generate tail
-        while i < (num_rows + 6):
-            x_offset = 0 if i % 2 == 0 else radius
-            pos = [x_offset + radius * 2 * round(j / 2), line_spacing * i]
-            a = SimulationObject(
-                self.sim,
-                pos=np.add(start, pos),
-                radius=radius,
-                color=Colour.light_green,
-            )
-            cluster.append(a)
-            i += 1
+        # while i < (num_rows + 6):
+        #     x_offset = 0 if i % 2 == 0 else radius
+        #     pos = [x_offset + radius * 2 * round(j / 2), line_spacing * i]
+        #     a = SimulationObject(
+        #         self.sim,
+        #         pos=np.add(start, pos),
+        #         radius=radius,
+        #         color=Colour.light_green,
+        #     )
+        #     cluster.append(a)
+        #     i += 1
 
         return cluster
 
@@ -83,11 +79,11 @@ class Test:
         self.sim = SimulationEngine("SimulationObject Edge Following", 800)
 
         middle = self.sim.game_size / 2
-        radius = 10
+        radius = 30
         self.cluster = self._generate_cluster(middle, radius)
         print(f"Number of cluster objects: {len(self.cluster)}")
 
-        self.follower = SimulationObject(self.sim, radius=radius, speed=50)
+        self.follower = SimulationObject(self.sim, radius=radius, speed=3)
         self.follower.set_orbit_object(self.cluster[0])
 
         self.objects.extend(self.cluster)

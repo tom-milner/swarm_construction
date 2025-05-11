@@ -39,7 +39,7 @@ class Agent(SimulationObject):
         self,
         sim_engine: SimulationEngine,
         start_pos,
-        color=Colour.white,
+        color=Colour.off_white,
         local_pos=None,
         shape: Shape = None,
         mode="monochrome",
@@ -54,7 +54,7 @@ class Agent(SimulationObject):
             local_pos ([int,int], optional): The position of the agent in the swarm. This is used to provide seed agents with their initial positions. Defaults to None.
         """
 
-        self.color = Colour.white
+        self.color = Colour.off_white
         self.gradient = gradient
         self.speed = 0
         self.local_pos = local_pos
@@ -78,7 +78,7 @@ class Agent(SimulationObject):
             # agents effectively only 'see' their section of the shape
             if color == Colour.grey:
                 self.color_flag = 127
-            elif color == Colour.white:
+            elif color == Colour.off_white:
                 self.color_flag = 255
 
         # Initialise the underlying simulation object.
@@ -460,7 +460,7 @@ class Agent(SimulationObject):
     def state_idle(self, fps):
         self.speed = 0
         if self.mode == "monochrome":
-            self.color = Colour.white
+            self.color = Colour.off_white
 
         # Initialise gradients if we need to.
         if self.gradient == None:
@@ -487,7 +487,7 @@ class Agent(SimulationObject):
 
         self.speed = self.start_speed
         if self.mode == "monochrome":
-            self.color = Colour.white
+            self.color = Colour.green
 
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
@@ -525,7 +525,7 @@ class Agent(SimulationObject):
 
     def state_moving_inside_shape(self, fps):
         if self.mode == "monochrome":
-            self.color = Colour.orange
+            self.color = Colour.yellow
         neighbours = self.get_nearest_neighbours()
         self.follow_edges(neighbours)
         self.localise(neighbours)
@@ -545,7 +545,7 @@ class Agent(SimulationObject):
 
     def state_bridging(self, fps):
         if self.mode == "monochrome":
-            self.color = self.color = Colour.red
+            self.color = Colour.red
         # Get closest neighbours.
         neighbours = self.get_nearest_neighbours()
         self.follow_edges(neighbours)

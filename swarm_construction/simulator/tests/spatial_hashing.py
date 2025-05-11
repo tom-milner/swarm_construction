@@ -48,8 +48,11 @@ class Test:
     def run(self):
         # Setup the simulation
         self.sim = SimulationEngine("Spatial Hashing", 800)
-        middle = self.sim.game_size / 2
         radius = 30
+        neighbourhood_width = radius * 3
+        self.sim.neighbourhood_dim = [neighbourhood_width, neighbourhood_width]
+        middle = self.sim.game_size / 2
+        
         side_length = 10
         self.cluster = self._generate_cluster(middle, radius, side_length)
         print(f"Number of cluster objects: {len(self.cluster)}")

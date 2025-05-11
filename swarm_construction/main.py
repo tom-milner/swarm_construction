@@ -121,7 +121,7 @@ class SwarmConstructionSimulation:
                 Agent(
                     self.sim,
                     pos,
-                    color=Colour.white,
+                    color=Colour.off_white,
                     shape=self.target_shape,
                     mode=self.mode,
                 )
@@ -176,7 +176,7 @@ class SwarmConstructionSimulation:
 
                 # randomly make roughly the right proportion of agents each colour
                 if random.random() < self.p_white_agents:
-                    color = Colour.white
+                    color = Colour.off_white
                 else:
                     color = Colour.grey
 
@@ -370,7 +370,8 @@ class SwarmConstructionSimulation:
         
         self.place_shape(self.shape_file)
         self.place_agents(self.num_agents, 300)
-
+        
+        self.sim.background_color = Colour.black
         self.sim.run()
 
 

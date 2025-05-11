@@ -7,10 +7,83 @@ from swarm_construction.simulator.analytics import Analytics
 import math
 import numpy as np
 from PIL import Image
+from pathlib import Path
 
 
 class Test:
     """The entry point for the shape-constructing-swarm simulation."""
+
+    def place_shape(self, shape_file):
+
+        window_area = self.sim.game_size**2
+        goal_shape_area = window_area * self.shape_area_proportion
+
+        # this whole thing scales the inputted shape file to match the robot area
+        self.sim.shape_name = shape_file
+        shape = Image.open(Path(shape_file))
+        init_shape_area = sum(pixel != 0 for pixel in shape.getdata())
+
+        scale_factor = math.sqrt(goal_shape_area / init_shape_area)
+        scaled_shape = shape.resize(
+            (int(shape.width * scale_factor), int(shape.height * scale_factor)),
+            Image.NEAREST,
+        )
+        # This flips the shape, may need to be removed if we change how we generate shapes
+        # NOTE not required when using shape_create_gui to make bmp file!
+        # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
+        # scaled_shape.save("scaled_shape_test.bmp")
+
+        # converts image to numpy array
+        shape_array = np.array(scaled_shape)
+
+        # counts how many of each colour pixel there are
+        # then works out the proportion of white pixels compared to grey
+        # can be expanded if we want more colours
+        # this proportion is used to make sure we have the right amount of agents
+        # of each colour
+        colour_count = np.array(np.unique(shape_array, return_counts=True)).T
+        colour_count = colour_count[~np.any(colour_count == 0, axis=1)]
+        white_loc_row, white_loc_col = np.where(colour_count == 255)
+        self.p_white_agents = colour_count[white_loc_row, 1] / np.sum(
+            colour_count[:, 1]
+        )
+
+        if self.p_white_agents == 1:
+            self.mode = "monochrome"
+        else:
+            self.mode = "greyscale"
+
+        # finds the bottom left most not black pixel in the scaled shape
+        # in the array this is actually max y (row) with min x (col)
+        # this finds the indices of all not black pixels
+        white_px_index = np.argwhere(shape_array != 0)
+
+        # confusingly when dealing with the image through pillow pixels are identified as [x,y]
+        # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
+        max_y_px = white_px_index[white_px_index[:, 0] == np.max(white_px_index[:, 0])]
+
+        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
+        # in format [y,x] (silly), with origin (0,0) top left.
+        origin_px = max_y_px[np.argmin(max_y_px[:, 1])]
+
+        # draw_origin is the location for the top left pixel in the image - of any colour
+        # self.seed_origin is the centre of the seeds in format [x,y] (with origin0,0 in top left corner)
+        draw_origin = [
+            self.seed_origin[0] - origin_px[1],
+            self.seed_origin[1] - origin_px[0],
+        ]
+
+        # Instantiates SimulationShape class with shape data
+        SimulationShape(draw_origin, scaled_shape, self.sim)
+
+        # Create coordinates of bottom left pixel using origin [x,y]=[0,0]=bottom left
+        bottom_left = [origin_px[1], shape_array.shape[0] - origin_px[0]]
+
+        # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
+        # agent access to the scaled_shape and the coordinates of the bottom left pixel.
+        self.target_shape = Agent.Shape(
+            scaled_shape, bottom_left, []
+        )
 
     def calculate_agent_radius(self, game_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
@@ -80,7 +153,7 @@ class Test:
         """Generate and place agents in the simulation."""
 
         # Calculate how big we can make the agents given our current window size.
-        Agent.radius = self.calculate_agent_radius(self.sim.game_size, 5)
+        Agent.radius = self.calculate_agent_radius(self.sim.game_size, 10)
         line_spacing = math.fabs(round(math.tan(2 * math.pi / 3) * Agent.radius))
         column_spacing = Agent.radius
 
@@ -89,68 +162,17 @@ class Test:
 
         # Generate dummy agents to make things difficult.
         dummy_pos = np.add(seed_pos[3], [column_spacing, line_spacing])
-        Agent(self.sim, start_pos=dummy_pos)
+        Agent(self.sim, start_pos=dummy_pos, shape=self.target_shape)
         dummy_pos = np.add(dummy_pos, [-column_spacing * 2, 0])
-        Agent(self.sim, start_pos=dummy_pos)
+        Agent(self.sim, start_pos=dummy_pos,  shape=self.target_shape)
 
         agent_pos = [-column_spacing, 0]
         start_pos = np.add(dummy_pos, agent_pos)
-        mov = Agent(
+        Agent(
             self.sim,
             start_pos=start_pos,
             shape=self.target_shape,
         )
-        mov.speed = 100
-
-    def place_shape(self, shape_file):
-
-        window_area = self.sim.game_size**2
-        goal_shape_area = window_area * self.shape_area_proportion
-
-        # this whole thing scales the inputted shape file to match the robot area
-        shape = Image.open(shape_file)
-        init_shape_area = sum(pixel == 255 for pixel in shape.getdata())
-
-        scale_factor = math.sqrt(goal_shape_area / init_shape_area)
-        scaled_shape = shape.resize(
-            (int(shape.width * scale_factor), int(shape.height * scale_factor)),
-            Image.NEAREST,
-        )
-        # This flips the shape, may need to be removed if we change how we generate shapes
-        # NOTE not required when using shape_create_gui to make bmp file!
-        # scaled_shape = scaled_shape.transpose(Image.FLIP_TOP_BOTTOM)
-        # converts image to numpy array
-        shape_array = np.array(scaled_shape)
-
-        # finds the bottom left most white pixel in the scaled shape
-        # in the array this is actually max y (row) with min x (col)
-        # this finds the indices of all white pixels
-        white_px_index = np.argwhere(shape_array == True)
-
-        # confusingly when dealing with the image through pillow pixels are identified as [x,y]
-        # but when dealing with it as an np array the pixels are targeted by [y,x] ([rows, columns])
-        max_y_px = white_px_index[white_px_index[:, 0] == np.max(white_px_index[:, 0])]
-
-        # origin_px is the bottom left white pixel in the shape (when looking at it on screen)
-        # in format [y,x] (silly), with origin (0,0) top left.
-        origin_px = max_y_px[np.argmin(max_y_px[:, 1])]
-
-        # draw_origin is the location for the top left pixel in the image - of any colour
-        # self.seed_origin is the centre of the seeds in format [x,y] (with origin0,0 in top left corner)
-        draw_origin = [
-            self.seed_origin[0] - origin_px[1],
-            self.seed_origin[1] - origin_px[0],
-        ]
-
-        # Instantiates SimulationShape class with shape data
-        SimulationShape(draw_origin, scaled_shape, self.sim)
-
-        # Create coordinates of bottom left pixel using origin [x,y]=[0,0]=bottom left
-        bottom_left = [origin_px[1], shape_array.shape[0] - origin_px[0]]
-
-        # Create an Agent.Shape identical to SimulationShape. This is the same shape, but only allows the
-        # agent access to the scaled_shape and the coordinates of the bottom left pixel.
-        self.target_shape = Agent.Shape(scaled_shape, bottom_left)
 
     def run_analytics(self):
         ana_suite = Analytics(self.sim, self.seed_origin)
@@ -162,13 +184,15 @@ class Test:
         self.sim = SimulationEngine(
             "Localisation Test", 800, analytics_func=self.run_analytics
         )
+        self.sim.background_color = Colour.black
+        
         # origin of the seed agents
         self.seed_origin = [0.3 * self.sim.game_size, 0.6 * self.sim.game_size]
 
         # The size of the shape as a proportion of the total area of the screen.
         self.shape_area_proportion = 0.05
 
-        self.place_shape("sheep.bmp")
+        self.place_shape("swarm_construction/shape/wrench.bmp")
         self.place_agents()
 
         self.sim.run()

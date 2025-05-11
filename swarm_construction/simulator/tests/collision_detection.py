@@ -39,7 +39,7 @@ class Test:
         # Add agents
         middle = self.sim.game_size / 2
         offset = middle / 2
-        speed = 100
+        speed = 2
 
         self.a_left = SimulationObject(
             self.sim,
