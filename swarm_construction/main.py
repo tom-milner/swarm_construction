@@ -19,7 +19,7 @@ class SwarmConstructionSimulation:
     num_agents = 300
 
     # The shape file to use in the simulation.
-    shape_file = "swarm_construction/shape/wrench.bmp"
+    shape_file = "swarm_construction/shape/thanks.bmp"
 
     def calculate_agent_radius(self, game_size, num_agents):
         """Calculate how big we can make each agent given our current window size.
@@ -186,7 +186,7 @@ class SwarmConstructionSimulation:
                 )
                 num_agents -= 1
 
-    def place_agents(self, num_agents):
+    def place_agents(self, num_agents, extra_agents):
         """Generate and place agents in the simulation.
 
         Args:
@@ -196,6 +196,7 @@ class SwarmConstructionSimulation:
         """
         # Calculate how big we can make the agents given our current window size.
         Agent.radius = self.calculate_agent_radius(self.sim.game_size, num_agents)
+        num_agents += extra_agents
 
         # Because our agents are circular, we can make them fit snuggly together if we
         # slot each row of agents into the gaps between agents in the previous row.
@@ -348,12 +349,11 @@ class SwarmConstructionSimulation:
 
     def main(self):
 
-        # For each pixel an agent travels, we update the sim twice.
-        update_rate = Agent.start_speed * 4
+        update_rate = 240
 
         self.sim = SimulationEngine(
             "Swarm Construction",
-            game_size=800,
+            game_size=1000,
             window_size=800,
             draw_rate=30,
             update_rate=update_rate,
@@ -363,13 +363,13 @@ class SwarmConstructionSimulation:
         self.agents = []
 
         # origin of the seed agents
-        self.seed_origin = [0.21 * self.sim.game_size, 0.6 * self.sim.game_size]
+        self.seed_origin = [0.1 * self.sim.game_size, 0.6 * self.sim.game_size]
 
         # The size of the shape as a proportion of the total area of the screen.
-        self.shape_area_proportion = 0.1
-
+        self.shape_area_proportion = 0.05
+        
         self.place_shape(self.shape_file)
-        self.place_agents(self.num_agents)
+        self.place_agents(self.num_agents, 300)
 
         self.sim.run()
 

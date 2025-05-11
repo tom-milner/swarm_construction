@@ -213,7 +213,7 @@ class Agent(SimulationObject):
         # return
 
         # Set a starting local_pos if necessary.
-        pos = [-self.radius, +self.radius] if self.local_pos is None else self.local_pos
+        pos = [0,0] if self.local_pos is None else self.local_pos
 
         # NOTE: This localisation algorithm is a bit rubbish. It's based off the paper, and was designed to manage
         # the constraints they were facing with small, low-power, low-compute robots, and asynchronous comms.
@@ -223,7 +223,7 @@ class Agent(SimulationObject):
         last_pos = pos
 
         dist = 1
-        threshold = 0.001
+        threshold = 0.0001
         while dist > threshold**2:
             for n in localised_neighbours:
                 agent = n[0]
